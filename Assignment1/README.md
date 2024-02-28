@@ -13,6 +13,7 @@ Where:
 - `if`, `then`, `else` are keywords
 - `cond` is a greater comparison between two integers, two variables or an integer and a variable, such as: `a>b`, `1>a`, `2>1`
 - `stmt` is an assignment, example: `a=b`
+- A variable name must start with a 2 characters prefix including a lowercase letter followed by a number. Example: `a1`, `b2a`, `c33`, `d114e` are correct variable names     
 
 ## Running the parser
 
