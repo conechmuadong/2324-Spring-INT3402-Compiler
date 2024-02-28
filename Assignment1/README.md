@@ -7,12 +7,12 @@
 
 ## Introduction
 
-An simple token parser for scanning step of a simple programing language compiler with following rules of syntax:
-The programing language just have only one statement type: `if cond then stmt else stmt;`
+A simple token parser acting like a scanner in a simple programming language compiler with the following rules of syntax:
+The programming language has only one type of statement: `if cond then stmt else stmt;`
 Where: 
 - `if`, `then`, `else` are keywords
 - `cond` is a greater comparison between two integers, two variables or an integer and a variable, such as: `a>b`, `1>a`, `2>1`
-- `stmt` is a asignment, example: `a=b`
+- `stmt` is an assignment, example: `a=b`
 
 ## Running the parser
 
@@ -29,14 +29,14 @@ g++ ./src/parser.cpp -o parser
 
 ## Output format
 
-The output file is formated as following:
+The output file is formatted as following:
 ```
 <TokenType, Value(Optional)>,
 <TokenType, Value(Optional)>,
 ....
 <TokenType, Value(Optional)>
 ```
-In the case there is an error in the input file, the output file return: 
+If there is an error in the input file, the output file returns: 
 ```
 Error at line ... at position ..., can't resolve the symbols ... 
 ```
