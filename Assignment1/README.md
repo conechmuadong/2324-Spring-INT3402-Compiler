@@ -7,8 +7,8 @@
 
 ## Introduction
 
-A simple token parser acting like a scanner in a simple programming language compiler with the following rules of syntax:
-The programming language has only one type of statement: `if cond then stmt else stmt;`
+A simple token parser acts like a scanner in a simple programming language compiler with the following rules of syntax:
+The programming language has only one type of statement: `if cond then stmt else stmt;` 
 Where: 
 - `if`, `then`, `else` are keywords
 - `cond` is a greater comparison between two integers, two variables or an integer and a variable, such as: `a>b`, `1>a`, `2>1`
