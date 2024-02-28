@@ -9,4 +9,4 @@
 This is repository to save assignments' results of Course: INT3402-1 Compiler at VNU University of Engineering and Technology, in the Spring Semester of 2024.
 
 ## Content
-- Assignment 1: Token parser (Lexical Analysis)
+- [Assignment 1: Token parser (Lexical Analysis)](https://github.com/conechmuadong/2324-Spring-INT3402-Compiler/tree/main/Assignment1)
