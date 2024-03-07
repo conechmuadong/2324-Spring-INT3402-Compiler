@@ -10,4 +10,4 @@ This is repository to save assignments' results of Course: INT3402-1 Compiler at
 
 ## Content
 - [Assignment 1: Token parser (Lexical Analysis)](https://github.com/conechmuadong/2324-Spring-INT3402-Compiler/tree/main/Assignment1)
-- [Assignment 2: Token parser using FLEX (Lexical Analysis)](https://github.com/conechmuadong/2324-Spring-INT3402-Compiler/tree/main/Assignment2)
+- [Assignment 2: Token parser using C/C++ FLEX (Lexical Analysis)](https://github.com/conechmuadong/2324-Spring-INT3402-Compiler/tree/main/Assignment2)
