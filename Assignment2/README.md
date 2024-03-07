@@ -13,7 +13,7 @@ Where:
 - `if`, `then`, `else` are keywords
 - `cond` is a greater comparison or greater or equal comparison between two integers, two variables or an integer and a variable, such as: `a>b`, `1>a`, `2>=1`
 - `stmt` is an assignment, example: `a=b`
-- A variable name must start with a 2 characters prefix including a lowercase letter followed by a number. Example: `a1`, `b2a`, `c33`, `d114e` are correct variable names     
+- A variable name must start with a 2 character-prefix, including a lowercase letter followed by a number. Example: `a1`, `b2a`, `c33`, `d114e` are correct variable names     
 
 ## Running the parser
 
@@ -23,7 +23,7 @@ The following example starts the parser for generating token from file `input.in
 ./parser input.in out/output.out
 ```
 
-For changing the parser by changing the flex source code, run 2 following command:
+For changing the parser by changing the flex source code, run these 2 following commands:
 ```
 flex parserusingflex.l
 gcc lex.yy.c -o parser
