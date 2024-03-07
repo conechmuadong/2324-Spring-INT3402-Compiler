@@ -33,7 +33,6 @@ int yywrap(){
     return 1;
 }
 int main(int argc, char* args[]){
-    /* open a file handle to a particular file */
     if (argc < 3) {
         printf("./parser expected 2 arguments but receive %d\n", argc); 
         printf("Usage: ./parser INPUT OUTPUT \n \t - INPUT: PATH to the input file \n \t -OUTPUT: PATH to file the parser will save the result to.");
@@ -41,15 +40,13 @@ int main(int argc, char* args[]){
     }
     char * input = args[1];
     char * output = args[2];
-    FILE *myfile = fopen(input, "r");
+    FILE * myfile = fopen(input, "r");
     if (!myfile){
         printf("Failed to open the file: %s", input);
         return -1;
     }
-    /* set flex to read from it instead of defaulting to stdin */
     yyin = myfile;
     yyout = fopen(output, "w");
-    /* flex through the input */
     yylex();
 
     if (error == 1){
