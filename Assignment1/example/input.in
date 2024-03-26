@@ -1,0 +1,15 @@
+begin
+    int a1 = a2;
+    bool b1 = b2;
+    a = b + c;
+    a = ((a + b)+ e) * c;
+    if (a == b) then{
+        stmt;
+    }  else {
+        stmt;
+    }
+    do{
+        stmt
+    } while (a>=b);
+    // comment
+    /* commment

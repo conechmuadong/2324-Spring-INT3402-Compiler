@@ -1,0 +1,49 @@
+begin
+    int a1 = a2;
+    bool b1 = b2;
+    a = b + c;
+    a = (a + b) * c;
+    if (a >= b) then{
+        stmt;
+    }  else {
+        stmt;
+    }
+    do{
+        stmt
+    } while (stmt);
+    // comment
+    /* commment */
+end
+
+
+P -> begin SL end
+SL -> S; SL | cmt SL | e
+S -> DS, CS, IF, DW
+DS -> int ID = DStail | bool ID = BDStail
+DStail -> E
+BDStail -> E | CMP
+CS -> id = E | print(E) 
+E -> E+T | T
+T -> T+F | F
+F -> (E) | id | number
+IF -> IFstart | IFstart else {SL}
+IFstart -> if (CMP) then {SL}
+CMP ->  E relop E
+DW -> do {SL} while (CMP)
+
+1. P -> begin SL end
+2. SL -> S; SL | cmt SL | e
+3. S -> DS, CS, IF, DW
+4. DS -> int ID = DStail | bool ID = BDStail
+5. DStail -> E
+6. BDStail -> E | CMP
+7. CS -> id = E | print(E) 
+8. E -> TE'
+9. E' -> +TE'| e
+10. T -> FT'
+11. T'-> *FT'| e
+12. F -> (E) | id | number
+13. IF -> IFstart | IFstart else {SL}
+14. IFstart -> if (CMP) then {SL}
+15. CMP ->  E relop E
+16. DW -> do {SL} while (CMP)

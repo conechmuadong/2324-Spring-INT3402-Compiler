@@ -25,7 +25,7 @@ The following example starts the parser for generating token from file `input.in
 
 For changing the source code and re-compile the parser:
 ```
-g++ ./src/parser.cpp -o parser
+g++ ./src/parser.cpp -o ./out/parser
 ```
 
 ## Output format
