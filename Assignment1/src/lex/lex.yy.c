@@ -381,12 +381,12 @@ struct yy_trans_info
 	};
 static const flex_int16_t yy_accept[73] =
     {   0,
-        0,    0,   15,   15,   33,   31,    1,    2,   20,   22,
-       21,   31,   28,   27,   24,   23,   13,   13,   13,   13,
-       13,   13,   13,   13,   15,   17,   16,    1,   14,   19,
-       30,   28,   30,   26,   25,   29,   13,   13,   13,   13,
-       10,   13,   13,    7,   13,   13,   13,   13,   15,   16,
-       16,   18,   19,   30,   13,   13,   13,    4,    5,   13,
+        0,    0,   16,   16,   33,   31,    1,    2,   21,   23,
+       22,   31,   14,   28,   25,   24,   13,   13,   13,   13,
+       13,   13,   13,   13,   16,   18,   17,    1,   15,   20,
+       30,   14,   30,   27,   26,   29,   13,   13,   13,   13,
+       10,   13,   13,    7,   13,   13,   13,   13,   16,   17,
+       17,   19,   20,   30,   13,   13,   13,    4,    5,   13,
        13,   13,   13,    6,    9,   13,    8,   13,    3,   12,
        11,    0
     } ;
@@ -511,7 +511,7 @@ static const flex_int16_t yy_chk[211] =
 /* Table of booleans, true if rule could match eol. */
 static const flex_int32_t yy_rule_can_match_eol[33] =
     {   0,
-0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 
+0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,     };
 
 static yy_state_type yy_last_accepting_state;
@@ -534,13 +534,19 @@ char *yytext;
 int line = 1;
 int count = 0;
 int error = 0;
-#line 538 "lex.yy.c"
+int num;
+int found;
+void initialize();
+void create(char* name);
+int readtokentab(char* name);
+int checkDefine(char* name);
+#line 544 "lex.yy.c"
 /* Start condition */
  
 /* Flex option: */
 /* Definitions: */
 /* rules of the language, following regex */
-#line 544 "lex.yy.c"
+#line 550 "lex.yy.c"
 
 #define INITIAL 0
 #define cmt 1
@@ -758,9 +764,9 @@ YY_DECL
 		}
 
 	{
-#line 23 "scanner.l"
+#line 28 "scanner.l"
 
-#line 764 "lex.yy.c"
+#line 770 "lex.yy.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -829,167 +835,171 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 24 "scanner.l"
+#line 29 "scanner.l"
 {count+=yyleng;};
 	YY_BREAK
 case 2:
 /* rule 2 can match eol */
 YY_RULE_SETUP
-#line 25 "scanner.l"
+#line 30 "scanner.l"
 {line++; count = 0;}
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 26 "scanner.l"
+#line 31 "scanner.l"
 {fprintf(yyout,"<BEGIN, %s>\n", yytext); count+=yyleng;}
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 27 "scanner.l"
+#line 32 "scanner.l"
 {fprintf(yyout,"<END, %s>\n", yytext); count+=yyleng;}
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 28 "scanner.l"
-{fprintf(yyout,"<INT, %s>\n", yytext); count+=yyleng;}
+#line 33 "scanner.l"
+{fprintf(yyout,"<TYPE, %s>\n", yytext); create(yytext); count+=yyleng;}
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 29 "scanner.l"
-{fprintf(yyout,"<BOOLEAN, %s>\n", yytext); count+=yyleng;}
+#line 34 "scanner.l"
+{fprintf(yyout,"<TYPE, %s>\n", yytext); create(yytext); count+=yyleng;}
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 30 "scanner.l"
+#line 35 "scanner.l"
 {fprintf(yyout,"<IF, %s>\n", yytext); count+=yyleng;}
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 31 "scanner.l"
+#line 36 "scanner.l"
 {fprintf(yyout,"<THEN, %s>\n", yytext); count+=yyleng;}
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 32 "scanner.l"
+#line 37 "scanner.l"
 {fprintf(yyout,"<ELSE, %s>\n", yytext); count+=yyleng;}
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 33 "scanner.l"
+#line 38 "scanner.l"
 {fprintf(yyout,"<DO, %s>\n", yytext); count+=yyleng;}
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 34 "scanner.l"
+#line 39 "scanner.l"
 {fprintf(yyout,"<WHILE, %s>\n", yytext); count+=yyleng;}
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 35 "scanner.l"
+#line 40 "scanner.l"
 {fprintf(yyout,"<PRINT, %s>\n", yytext); count+=yyleng;}
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 36 "scanner.l"
-{fprintf(yyout,"<ID, %s>\n",yytext); count+=yyleng;}
+#line 41 "scanner.l"
+{int found = readtokentab(yytext);
+                if (found == -1) {error = 2; return 0;}
+                else if (found == -2) {error = 1; return 0;}
+                else if (found == 0) {fprintf(yyout,"<ID, %s>\n",yytext); count+=yyleng; create(yytext);}
+                }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 37 "scanner.l"
-{BEGIN(cmt); fprintf(yyout,"<COMMENT, >\n"); count+=yyleng;} /* Scanner in start condition. Activate rule to recognize comments */
+#line 46 "scanner.l"
+{fprintf(yyout,"<NUM, %s>\n", yytext); count+=yyleng;}
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 38 "scanner.l"
-/* eat anything that's not a '*' */
+#line 47 "scanner.l"
+{BEGIN(cmt); fprintf(yyout,"<COMMENT, >\n"); count+=yyleng;} /* Scanner in start condition. Activate rule to recognize comments */
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 39 "scanner.l"
-/* eat up '*'s not followed by '/'s */
+#line 48 "scanner.l"
+/* eat anything that's not a '*' */
 	YY_BREAK
 case 17:
-/* rule 17 can match eol */
 YY_RULE_SETUP
-#line 40 "scanner.l"
-++line;
+#line 49 "scanner.l"
+/* eat up '*'s not followed by '/'s */
 	YY_BREAK
 case 18:
+/* rule 18 can match eol */
 YY_RULE_SETUP
-#line 41 "scanner.l"
-BEGIN(INITIAL);
+#line 50 "scanner.l"
+++line;
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 42 "scanner.l"
-{fprintf(yyout,"<COMMENT, >\n"); count+=yyleng;}
+#line 51 "scanner.l"
+BEGIN(INITIAL);
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 43 "scanner.l"
-{fprintf(yyout,"<BRACKET, %s>\n", yytext); count+=yyleng;}
+#line 52 "scanner.l"
+{fprintf(yyout,"<COMMENT, >\n"); count+=yyleng;}
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 44 "scanner.l"
-{fprintf(yyout,"<ADD, %s>\n", yytext); count+=yyleng;}
+#line 53 "scanner.l"
+{fprintf(yyout,"<BRACKET, %s>\n", yytext); count+=yyleng;}
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 45 "scanner.l"
-{fprintf(yyout,"<MULT, %s>\n", yytext); count+=yyleng;}
+#line 54 "scanner.l"
+{fprintf(yyout,"<ADD_OP, %s>\n", yytext); count+=yyleng;}
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 46 "scanner.l"
-{fprintf(yyout,"<RELOP_GTR, %s>\n", yytext); count+=yyleng;}
+#line 55 "scanner.l"
+{fprintf(yyout,"<MUL_OP, %s>\n", yytext); count+=yyleng;}
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 47 "scanner.l"
-{fprintf(yyout,"<ASSIGN, %s>\n", yytext); count+=yyleng;}
+#line 56 "scanner.l"
+{fprintf(yyout,"<RELOP, %s>\n", yytext); count+=yyleng;}
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 48 "scanner.l"
-{fprintf(yyout,"<RELOP_GEQ, %s>\n", yytext); count+=yyleng;}
+#line 57 "scanner.l"
+{fprintf(yyout,"<ASSIGN, %s>\n", yytext); count+=yyleng;}
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 49 "scanner.l"
-{fprintf(yyout,"<RELOP_EQ, %s>\n", yytext); count+=yyleng;}
+#line 58 "scanner.l"
+{fprintf(yyout,"<RELOP, %s>\n", yytext); count+=yyleng;}
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 50 "scanner.l"
-{fprintf(yyout,"<SEMICOLON, %s>\n", yytext); count+=yyleng;}
+#line 59 "scanner.l"
+{fprintf(yyout,"<RELOP, %s>\n", yytext); count+=yyleng;}
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 51 "scanner.l"
-{fprintf(yyout,"<NUMBER, %s>\n", yytext); count+=yyleng;}
+#line 60 "scanner.l"
+{fprintf(yyout,"<SEMI, %s>\n", yytext); count+=yyleng;}
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 52 "scanner.l"
+#line 62 "scanner.l"
 {error = 1; return 0;} /* Error rules below*/
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 53 "scanner.l"
+#line 63 "scanner.l"
 {error = 1; return 0;}
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 54 "scanner.l"
+#line 64 "scanner.l"
 {count+=yyleng; error = 1; return 0;}
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 55 "scanner.l"
+#line 65 "scanner.l"
 ECHO;
 	YY_BREAK
-#line 993 "lex.yy.c"
+#line 1003 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(cmt):
 	yyterminate();
@@ -2007,8 +2017,47 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 55 "scanner.l"
+#line 65 "scanner.l"
 
+
+struct tokentab 
+{
+    char Name[18];
+};
+struct tokentab arr_tokentab[200];
+
+void initialize()
+{
+    num = 0;
+    char name[18] = "BEGIN";
+    create(name);
+}
+
+void create(char* name)
+{
+    num += 1;
+    strcpy(arr_tokentab[num].Name, name);
+}
+
+int checkDefine(char* name){
+    for (int i = 0; i < num+1; i++){
+        if (strcmp(arr_tokentab[i].Name, name)==0){
+            return 1;
+        }
+    }   
+    return 0;
+}
+
+int readtokentab(char* name)
+{ 
+    if ((strcmp(arr_tokentab[num].Name, "bool") == 0 || strcmp(arr_tokentab[num].Name, "int") == 0) && checkDefine(name) == 1){
+        return -1;
+    }
+    else if ((strcmp(arr_tokentab[num].Name, "bool") != 0 && strcmp(arr_tokentab[num].Name, "int") != 0) && checkDefine(name) == 0){
+        return -2;
+    }
+    return 0;
+}
 
 int yywrap(){
     return 1;
@@ -2034,9 +2083,16 @@ int main(int argc, char* args[]){
         fclose(yyout);
         remove(output);
         yyout = fopen(output, "w");
-        fprintf(yyout, "Error at line %d at position %d, can't resolve the symbol: %s", yylineno, count, yytext); 
-        printf("Error at line %d at position %d, can't resolve the symbol: %s\n", yylineno, count, yytext);
+        fprintf(yyout, "Error at line %d at position %d, can't resolve the symbol: %s", line, count, yytext); 
+        printf("Error at line %d at position %d, can't resolve the symbol: %s\n", line, count, yytext);
         return -1;
+    }
+    else if (error == 2){
+        fclose(yyout);
+        remove(output);
+        yyout = fopen(output, "w");
+        fprintf(yyout, "Error at line %d at position %d, %s is redefined", line, count, yytext); 
+        printf("Error at line %d at position %d, %s is redefined\n", line, count, yytext);
     }
     return 0;
 }
