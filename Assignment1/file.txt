@@ -1,6 +1,6 @@
 begin
 	int x;
-int b1;
+	int b1;
 	int y=a1+1;
 	/*	comments 1/
 	cho nhiều dòng

@@ -39,6 +39,7 @@ do              {printf("<DO, %s>\n", yytext);}
 while           {printf("<WHILE, %s>\n", yytext);}
 print           {printf("<PRINT, %s>\n", yytext);}
 {id}            {int found = readtokentab(yytext);
+                printf("%d\n", found);
                 if (found == 1) {fprintf(stderr, "ERROR: Re-generate variable \"%s\"\n", yytext); return 0;}
                 else if (found == -1) {fprintf(stderr, "ERROR: Undeclared variable \"%s\"\n", yytext); return 0;}
                 else if (found == 2) {printf("<ID, %s>\n",yytext); create(yytext);}
@@ -72,7 +73,7 @@ struct tokentab arr_tokentab[200];
 
 void initialize()
 {
-    num = -1;
+    num = 0;
     char name[18] = "BEGIN";
     create(name);
 }
@@ -87,14 +88,14 @@ int readtokentab(char* name)
 {
     for (int i = num; i >= 0; i--){
         int comp = strcmp(arr_tokentab[i].Name, name);
-        if ((comp == 0 && arr_tokentab[i-1].Name == "bool") || (comp == 0 && arr_tokentab[i-1].Name == "int")){
+        if ((comp == 0 && strcmp(arr_tokentab[i-1].Name, "bool") == 0) || (comp == 0 && strcmp(arr_tokentab[i].Name, "int") == 0)){
             return 1;
         }
-        else if ((comp != 0 && arr_tokentab[i-1].Name == "bool") || (comp != 0 && arr_tokentab[i-1].Name == "int")){
+        else if ((comp != 0 && strcmp(arr_tokentab[i-1].Name, "bool") != 0) || (comp != 0 && strcmp(arr_tokentab[i].Name, "int") != 0)){
             return 2;
         }
-        else return -1;
     }
+    return -1;
 }
 
 int yywrap(){
