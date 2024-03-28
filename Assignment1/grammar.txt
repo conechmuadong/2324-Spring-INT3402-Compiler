@@ -17,35 +17,35 @@ end
 
 
 P -> begin SL end
-SL -> S; SL | cmt SL | e
-S -> DS, CS, IF, DW
-DS -> int ID = DStail | bool ID = BDStail
-DStail -> E
-BDStail -> E | CMP
-CS -> id = E | print(E) 
-E -> E+T | T
-T -> T+F | F
+SL -> S ; SL | BS SL | cmt SL | e
+S -> DS | CS
+BS -> IF | DW
+DS -> type id DStail
+DStail -> = E | e 
+CS -> id = E | print (E)
+E -> E relop K | K
+K -> K + T | T
+T -> F * T | F
 F -> (E) | id | number
-IF -> IFstart | IFstart else {SL}
-IFstart -> if (CMP) then {SL}
-CMP ->  E relop E
-DW -> do {SL} while (CMP)
+IF -> if (E) then {SL} IFtail
+IFtail -> else {SL} | e
+DW -> do {SL} while (E)
 
-P → begin SL end
-SL → S ; SL   |   cmt SL   |   e
-S → DS   |   CS   |   IF   |   DW
-DS → int ID DStail   |   bool ID BDStail
-DStail → = E   |   e
-BDStail → = CMP | E | e
-CS → ID = E   |   print (E)
-E -> CMP
-E’ → +TE’   |   e
-E → TE’
-T’ → *FT’   |   e
-T → FT’
-F → (E)   |   ID   |   NUMBER
-IF → if (CMP) then {SL} IFtail
-IFtail → else {SL}   |   e
-CMP → E CMPtail | BOOL
-CMPtail → relop E   |   e
-DW → do {SL} while (CMP)
+1. P -> begin SL end
+2. SL -> S SEP SL | cmt SL | e
+3. S -> DS | CS
+4. BS -> IF | DW
+5. DS -> type id DStail
+6. DStail -> = E | e
+7. CS -> id = E | print (E)
+8. IF -> if (E) then {SL} IFtail
+9. IFtail -> else {SL} | e
+10. DW -> do {SL} while (E) 
+11. E -> KE'
+12. E' -> relop KE' | e
+13. K -> TK'
+14. K' -> + TK' | e
+15. T -> FT'
+16. T' -> * FT' | e
+17. F -> (E) | id | number 
+
