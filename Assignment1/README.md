@@ -27,12 +27,12 @@ The context-free grammar for the UPL is designed.
 
 ## Context-free grammar
 
-- A Statement List `SL` may contain a statement `S`, a block statement `BS`, a comment `cmt` or null `E`. Here, a statement can be a declaration statement `DS` or a computational statement `CS`; while a block statement contains condition `IF` and loop `DW`.
+- A Statement List `SL` may contain a statement `S`, a block statement `BS`, a comment `cmt` or null `e`. Here, a statement can be a declaration statement `DS` or a computational statement `CS`; while a block statement contains condition `IF` and loop `DW`.
 - An expression can be addition `+`, multiplication `*` or comparison `relop`. The order of precedence from highest to lowest is: `*`, `+`, `relop`.  
 
 ## Running the scanner
 
-The following examples generate tokens from file `./example/input.in` and save the result to `example/output.out` by using:
+The following examples generate tokens from file `./example/input.in` and save the result to `.example/output.out` by using:
 
 - The built-from-scratch scanner:
     ```
