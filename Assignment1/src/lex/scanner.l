@@ -26,7 +26,7 @@ other    [^0-9+=>*{}(); \t\n]+
 /* Rules of the language, following regex */
 %%
 [ \t]+                      {count+=yyleng;};
-[\n]                        {line++; count = 0;}
+[\n]+                       {line++; count = 0;}
 
 begin                       {fprintf(yyout,"<BEGIN, >\n"); count+=yyleng;}
 end                         {fprintf(yyout,"<END, >\n"); count+=yyleng;}
