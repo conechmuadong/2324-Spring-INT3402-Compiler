@@ -28,16 +28,16 @@ other    [^0-9+=>*{}(); \t\n]+
 [ \t]+                      {count+=yyleng;};
 [\n]                        {line++; count = 0;}
 
-begin                       {fprintf(yyout,"<BEGIN, %s>\n", yytext); count+=yyleng;}
-end                         {fprintf(yyout,"<END, %s>\n", yytext); count+=yyleng;}
+begin                       {fprintf(yyout,"<BEGIN, >\n"); count+=yyleng;}
+end                         {fprintf(yyout,"<END, >\n"); count+=yyleng;}
 int                         {fprintf(yyout,"<TYPE, %s>\n", yytext); create(yytext); count+=yyleng;}
 bool                        {fprintf(yyout,"<TYPE, %s>\n", yytext); create(yytext); count+=yyleng;}
-if                          {fprintf(yyout,"<IF, %s>\n", yytext); count+=yyleng;}
-then                        {fprintf(yyout,"<THEN, %s>\n", yytext); count+=yyleng;}
-else                        {fprintf(yyout,"<ELSE, %s>\n", yytext); count+=yyleng;}
-do                          {fprintf(yyout,"<DO, %s>\n", yytext); count+=yyleng;}
-while                       {fprintf(yyout,"<WHILE, %s>\n", yytext); count+=yyleng;}
-print                       {fprintf(yyout,"<PRINT, %s>\n", yytext); count+=yyleng;}
+if                          {fprintf(yyout,"<IF, >\n"); count+=yyleng;}
+then                        {fprintf(yyout,"<THEN, >\n"); count+=yyleng;}
+else                        {fprintf(yyout,"<ELSE, >\n"); count+=yyleng;}
+do                          {fprintf(yyout,"<DO, >\n"); count+=yyleng;}
+while                       {fprintf(yyout,"<WHILE, >\n"); count+=yyleng;}
+print                       {fprintf(yyout,"<PRINT, >\n"); count+=yyleng;}
 
 {id}                        {int found = readtokentab(yytext);
                             if (found == -1) {count+=yyleng; error = 2; return 0;}
@@ -54,13 +54,13 @@ print                       {fprintf(yyout,"<PRINT, %s>\n", yytext); count+=yyle
 
 \/\/(.*)                    {fprintf(yyout,"<COMMENT, >\n"); count+=yyleng;}
 [(){}]                      {fprintf(yyout,"<BRACKET, %s>\n", yytext); count+=yyleng;}
-"+"                         {fprintf(yyout,"<ADD_OP, %s>\n", yytext); count+=yyleng;}
-"*"                         {fprintf(yyout,"<MUL_OP, %s>\n", yytext); count+=yyleng;}
+"+"                         {fprintf(yyout,"<ADD_OP, >\n"); count+=yyleng;}
+"*"                         {fprintf(yyout,"<MUL_OP, >\n"); count+=yyleng;}
 ">"                         {fprintf(yyout,"<RELOP, %s>\n", yytext); count+=yyleng;}
-"="                         {fprintf(yyout,"<ASSIGN, %s>\n", yytext); count+=yyleng;}
+"="                         {fprintf(yyout,"<ASSIGN, >\n"); count+=yyleng;}
 ">="                        {fprintf(yyout,"<RELOP, %s>\n", yytext); count+=yyleng;}
 "=="                        {fprintf(yyout,"<RELOP, %s>\n", yytext); count+=yyleng;}
-";"                         {fprintf(yyout,"<SEMI, %s>\n", yytext); count+=yyleng;}
+";"                         {fprintf(yyout,"<SEMI, >\n"); count+=yyleng;}
 
 {id}{other}+                {count+=yyleng; error = 1; return 0;} /* Error rules below */
 {number}({id}|{other})+     {count+=yyleng; error = 1; return 0;}
@@ -151,6 +151,7 @@ int main(int argc, char* args[])
         yyout = fopen(output, "w");
         fprintf(yyout, "Error at line %d at position %d, %s is redefined", line, count, yytext); 
         printf("Error at line %d at position %d, %s is redefined\n", line, count, yytext);
+        return -1;
     }
     return 0;
 }
