@@ -1,6 +1,6 @@
 begin
-    int aa1 = a2;
-    bool b1 = b2;
+    int aa1 = 5;
+    bool b1 = 6;
     a = b + c;
     a = ((a + b)+ e) * c;
     if (a == b) then{

@@ -43,10 +43,10 @@ print           {fprintf(yyout,"<PRINT, %s>\n", yytext); count+=yyleng;}
 [(){}]          {fprintf(yyout,"<BRACKET, %s>\n", yytext); count+=yyleng;}
 "+"             {fprintf(yyout,"<ADD, %s>\n", yytext); count+=yyleng;}
 "*"             {fprintf(yyout,"<MULT, %s>\n", yytext); count+=yyleng;}
-">"             {fprintf(yyout,"<RELOP_GTR, %s>\n", yytext); count+=yyleng;}
+">"             {fprintf(yyout,"<REL_OP, %s>\n", yytext); count+=yyleng;}
 "="             {fprintf(yyout,"<ASSIGN, %s>\n", yytext); count+=yyleng;}
-">="            {fprintf(yyout,"<RELOP_GEQ, %s>\n", yytext); count+=yyleng;}
-"=="            {fprintf(yyout,"<RELOP_EQ, %s>\n", yytext); count+=yyleng;}
+">="            {fprintf(yyout,"<REL_OP, %s>\n", yytext); count+=yyleng;}
+"=="            {fprintf(yyout,"<REL_OP, %s>\n", yytext); count+=yyleng;}
 ";"             {fprintf(yyout,"<SEMICOLON, %s>\n", yytext); count+=yyleng;}
 {number}        {fprintf(yyout,"<NUMBER, %s>\n", yytext); count+=yyleng;}
 {id}{other}+        {error = 1; return 0;} /* Error rules below*/

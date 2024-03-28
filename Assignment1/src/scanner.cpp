@@ -17,6 +17,12 @@ enum State{
     ERROR
 };
 
+enum ERROR{
+    UNDEFINE_SYMBOL,
+    REDEFINE_SYMBOL,
+    UNDEFINE_TYPE,
+};
+
 class Token{
     private:
         string type;
@@ -36,15 +42,26 @@ class Token{
         string getValue(){
             return this->value;
         }
+        bool isDefined(Token other){
+            return this->value == other.getValue();
+        }
 };
 
+bool checkDefine(Token token, Token tokens[], int lenght){
+    for (int i = 0; i < lenght; i++){
+        if (tokens[i].isDefined(token) && tokens[i].getType() == "ID"){
+            return true;
+        }
+    }   
+    return false;
+}
 /**
  * @def parser
  * @brief This function will parse the input string and return a list of tokens
  * @param input The input string to be parsed
 */
-bool parser(string input, Token tokens[], int * error_pointer, string * error_symbol, int * error_line){
-    int i = 0, j = 0;
+bool parser(string input, Token tokens[], int * error_pointer, string * error_symbol, int * error_line, int * error_type){
+    int i = 0, j = 0, k =0;
     int state = START;
     string token = "";
     string tokenType = "";
@@ -53,10 +70,12 @@ bool parser(string input, Token tokens[], int * error_pointer, string * error_sy
             case START:
                 if (input.substr(j, 1) == " "){
                     j++;
+                    k++;
                     continue;
                 }
                 if (input.substr(j, 1) == "\n"){
                     j++;
+                    k = 0;
                     *error_line+=1;
                     continue;
                 }
@@ -76,7 +95,7 @@ bool parser(string input, Token tokens[], int * error_pointer, string * error_sy
                 }
                 break;
             case ERROR:
-                *error_pointer = j;
+                *error_pointer = k;
                 *error_symbol = token;
                 return false;
                 break;
@@ -94,8 +113,18 @@ bool parser(string input, Token tokens[], int * error_pointer, string * error_sy
                 else {
                     state = START;
                     tokens[i++] = Token("ID", token);
-                    token = "";
-                    tokenType = "";
+                    if (tokens[i-2].getType() == "TYPE" && checkDefine(tokens[i-1], tokens, i-1)){
+                        *error_type = REDEFINE_SYMBOL;
+                        state = ERROR;
+                    }
+                    else if (tokens[i-2].getType()!="TYPE" && !checkDefine(tokens[i-1], tokens, i-1)){
+                        *error_type = UNDEFINE_SYMBOL;
+                        state = ERROR;
+                    }
+                    else{
+                        token = "";
+                        tokenType = "";
+                    }
                 }
                 break;
             case IN_ID_2:
@@ -106,11 +135,22 @@ bool parser(string input, Token tokens[], int * error_pointer, string * error_sy
                 else if (!regex_match(input.substr(j, 1), regex("[a-zA-Z0-9]+"))){
                     state = START;
                     tokens[i++] = Token(tokenType, token);
-                    token = "";
-                    tokenType = "";
+                    if (tokens[i-2].getType() == "TYPE" && checkDefine(tokens[i-1], tokens, i-1)){
+                        *error_type = REDEFINE_SYMBOL;
+                        state = ERROR;
+                    }
+                    else if (tokens[i-2].getType()!="TYPE" && !checkDefine(tokens[i-1], tokens, i-1)){
+                        *error_type = UNDEFINE_SYMBOL;
+                        state = ERROR;
+                    }
+                    else{
+                        token = "";
+                        tokenType = "";
+                    }
                 }
                 else {
                     state = ERROR;
+                    *error_type = UNDEFINE_TYPE;
                 }
                 break;
             case IN_NUM:
@@ -126,6 +166,7 @@ bool parser(string input, Token tokens[], int * error_pointer, string * error_sy
                 }
                 else {
                     state = ERROR;
+                    *error_type = UNDEFINE_TYPE;
                 }
                 break;
             case IN_SPECIAL:
@@ -153,21 +194,9 @@ bool parser(string input, Token tokens[], int * error_pointer, string * error_sy
                     }
                     // tokens[i++] = Token("ASSIGN", " ");
                 }
-                else if (token == "{")
+                else if (token == "{" || token=="}" || token == "(" || token == ")")
                 {
-                    tokens[i++] = Token("LBRACE", " ");
-                }
-                else if (token=="}")
-                {
-                    tokens[i++] = Token("RBRACE", " ");
-                }
-                else if (token == "(")
-                {
-                    tokens[i++] = Token("LPAREN", " ");
-                }
-                else if (token == ")")
-                {
-                    tokens[i++] = Token("RPAREN", " ");
+                    tokens[i++] = Token("BRACKET", token);
                 }                                      
                 else if (token == "+")
                 {
@@ -206,7 +235,7 @@ bool parser(string input, Token tokens[], int * error_pointer, string * error_sy
                 }
                 break;
             case IN_SYNTAX:
-                if (regex_match(input.substr(j,1), regex("[;]+")) || input.substr(j, 1) == " "||input[j] == '\n'){
+                if (regex_match(input.substr(j,1), regex("[;>={}()]")) || input.substr(j, 1) == " "||input[j] == '\n'){
                     state = START;
                     if(token == "if")
                         tokens[i++] = Token("IF", " ");
@@ -234,17 +263,24 @@ bool parser(string input, Token tokens[], int * error_pointer, string * error_sy
                     {
                         tokens[i++] = Token("PRINT", " ");
                     }
-                    else if (token == "int"){
-                        tokens[i++] = Token("INT", " ");
-                    }
-                    else if (token == "bool"){
-                        tokens[i++] = Token("BOOL", " ");
+                    else if (token == "bool" || token == "int"){
+                        tokens[i++] = Token("TYPE", token);
                     }
                     else{                   
                         tokens[i++] = Token("ID", token);
+                        if (tokens[i-2].getType() == "TYPE" && checkDefine(tokens[i-1], tokens, i-1)){
+                        *error_type = REDEFINE_SYMBOL;
+                        state = ERROR;
+                        }
+                        else if (tokens[i-2].getType()!="TYPE" && !checkDefine(tokens[i-1], tokens, i-1)){
+                            *error_type = UNDEFINE_SYMBOL;
+                            state = ERROR;
+                        }
                     }
-                    token = "";
-                    tokenType = "";
+                    if (state != ERROR){
+                        token = "";
+                        tokenType = "";
+                    }
                 }
                 else if (regex_match(input.substr(j,1), regex("[a-z]+"))){
                     token = token.append(1, input[j]);
@@ -256,10 +292,8 @@ bool parser(string input, Token tokens[], int * error_pointer, string * error_sy
                     state = IN_ID_2;
                 }
                 else{
-                    state = START;
-                    tokens[i++] = Token("ID", token);
-                    token = "";
-                    tokenType = "";
+                    state = ERROR;
+                    *error_type = UNDEFINE_TYPE;
                 }
                 break;
             case IN_MULTILINE_COMMENT:
@@ -305,14 +339,14 @@ bool parser(string input, Token tokens[], int * error_pointer, string * error_sy
 }
 
 int main(int argc, char* argv[]) {
-    // if (argc < 3) {
-    //     cout <<"./parser expected 2 arguments but receive "<< argc << "\n" << "Usage: ./parser INPUT OUTPUT \n \t - INPUT: PATH to the input file \n \t -OUTPUT: PATH to file the parser will save the result to." << endl;
-    //     return -1;
-    // }
+    if (argc < 3) {
+        cout <<"./parser expected 2 arguments but receive "<< argc << "\n" << "Usage: ./parser INPUT OUTPUT \n \t - INPUT: PATH to the input file \n \t -OUTPUT: PATH to file the parser will save the result to." << endl;
+        return -1;
+    }
 
-    string filename = /* argv[1]; */ "input.in";
+    string filename = argv[1]; // "input.in";
     ifstream file(filename);
-    string outputFilename = /* argv[2]; */ "output.out";
+    string outputFilename = argv[2]; // "output.out";
     if (!file.is_open()) {
         cout << "Failed to open the file: " << filename << endl;
         return -1;
@@ -334,11 +368,18 @@ int main(int argc, char* argv[]) {
     Token tokens[1000];
     int error_pointer = 0;
     int error_line = 1;
+    int error_type = 0;
     string error_symbol = "";
-    if (!parser(input, tokens, &error_pointer, &error_symbol, &error_line)){
-        outputFile << "Error at line " << error_line << " at position " << error_pointer << ", can't resolve the symbol "<< error_symbol << endl;
+    if (!parser(input, tokens, &error_pointer, &error_symbol, &error_line, &error_type)){
+        if (error_type != REDEFINE_SYMBOL){
+            outputFile << "Error at line " << error_line << " at position " << error_pointer << ", can't resolve the symbol "<< error_symbol << endl;
+            cout << "Error at line " << error_line << " at position " << error_pointer << ", can't resolve the symbol "<< error_symbol << endl;
+        }
+        else {
+            outputFile << "Error at line " << error_line << " at position " << error_pointer << ", " << error_symbol << "is redefined";
+        }
         return -1;
-}
+    }
     for (int j = 0; j < 1000; j++){
         if (tokens[j].getType() == ""){
             break;
