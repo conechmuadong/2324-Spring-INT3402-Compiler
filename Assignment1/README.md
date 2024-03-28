@@ -20,7 +20,7 @@ The context-free grammar for the UPL is designed.
 
 ## File structure
 
-- The `grammar.txt` contains definitions for context-free grammar for the UPL.
+- The `Context-free grammar.md` contains definitions for context-free grammar for the UPL.
 - Source code for the built-from-scratch scanner and the C/C++ FLEX scanner is included in `./src` folder.
 - `./out` folder contains binary files of above scanners.
 - `./example` contains the example input file and example output file for the scanners.
