@@ -31,19 +31,21 @@ IFstart -> if (CMP) then {SL}
 CMP ->  E relop E
 DW -> do {SL} while (CMP)
 
-1. P -> begin SL end
-2. SL -> S; SL | cmt SL | e
-3. S -> DS, CS, IF, DW
-4. DS -> int ID = DStail | bool ID = BDStail
-5. DStail -> E
-6. BDStail -> E | CMP
-7. CS -> id = E | print(E) 
-8. E -> TE'
-9. E' -> +TE'| e
-10. T -> FT'
-11. T'-> *FT'| e
-12. F -> (E) | id | number
-13. IF -> IFstart | IFstart else {SL}
-14. IFstart -> if (CMP) then {SL}
-15. CMP ->  E relop E
-16. DW -> do {SL} while (CMP)
+P → begin SL end
+SL → S ; SL   |   cmt SL   |   e
+S → DS   |   CS   |   IF   |   DW
+DS → int ID DStail   |   bool ID BDStail
+DStail → = E   |   e
+BDStail → = CMP | E | e
+CS → ID = E   |   print (E)
+E -> CMP
+E’ → +TE’   |   e
+E → TE’
+T’ → *FT’   |   e
+T → FT’
+F → (E)   |   ID   |   NUMBER
+IF → if (CMP) then {SL} IFtail
+IFtail → else {SL}   |   e
+CMP → E CMPtail | BOOL
+CMPtail → relop E   |   e
+DW → do {SL} while (CMP)
