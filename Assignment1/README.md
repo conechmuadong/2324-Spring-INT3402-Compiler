@@ -8,7 +8,7 @@
 
 ## Introduction
 
-A simple, built-from-scratch and a C/C++ FLEX-generated scanner in the UPL programming language compiler with the following rules of syntax:
+A simple, built-from-scratch scanner and a C/C++ FLEX-generated scanner in the UPL programming language are built with the following rules of syntax:
 - `begin`, `end`, `if`, `else`, `then`, `do`, `while`, `print`, `int`, `bool` are keywords.
 - There are 3 commparison operations: greater than `>`, greater than or equal `>=`, equal `==`. 
 - A variable name must start with a letter, any numbers included must be at the end. Example: `a1`, `c33`, `de114` are correct variable names.
@@ -16,7 +16,7 @@ A simple, built-from-scratch and a C/C++ FLEX-generated scanner in the UPL progr
 - There are 2 arithmetic operations: addition `+`, multiplication `*`.
 - Comments are written using `//` for single-line comments or enclosing multi-line comments within `/*` and `*/`.
 
-And the context-free grammar for the UPL.
+The context-free grammar for the UPL is designed.
 
 ## File structure
 
@@ -24,6 +24,11 @@ And the context-free grammar for the UPL.
 - Source code for the built-from-scratch scanner and the C/C++ FLEX scanner is included in `./src` folder.
 - `./out` folder contains binary files of above scanners.
 - `./example` contains the example input file and example output file for the scanners.
+
+## Context-free grammar
+
+- A Statement List `SL` may contain a statement `S`, a block statement `BS`, a comment `cmt` or null `E`. Here, a statement can be a declaration statement `DS` or a computational statement `CS`; while a block statement contains condition `IF` and loop `DW`.
+- An expression can be addition `+`, multiplication `*` or comparison `relop`. The order of precedence from highest to lowest is: `*`, `+`, `relop`.  
 
 ## Running the scanner
 
