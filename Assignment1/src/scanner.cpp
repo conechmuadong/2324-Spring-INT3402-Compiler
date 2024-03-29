@@ -68,7 +68,7 @@ bool parser(string input, Token tokens[], int * error_pointer, string * error_sy
     while (j < input.length()){
         switch (state){
             case START:
-                if (input.substr(j, 1) == " "){
+                if (input.substr(j, 1) == " " || input.substr(j, 1) == "\t"){
                     j++;
                     k++;
                     continue;
@@ -344,7 +344,7 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
-    string filename = argv[1]; // "input.in";
+    string filename = argv[1];// "../example/input.in";
     ifstream file(filename);
     string outputFilename = argv[2]; // "output.out";
     if (!file.is_open()) {

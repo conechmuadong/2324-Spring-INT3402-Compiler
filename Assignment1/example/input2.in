@@ -1,27 +1,23 @@
-begin
-	int x;
-int a1;
-	int y=x+1;
-	/*	comments /
-	cho nhiều dòng *
-	*/
-	bool a;//comment cho một/1 dòng
-	if x>a then{
-		int c=1;
-	}else{
-		y=x;
-		x=x+1;
+begin 
+	int a;
+	int b = 0;
+	int c;
+
+	bool e;
+
+	a = a + b;
+	b = (c + a) * b; // This is a comment
+
+	if ((a>b) == c){
+		a = a + c;
 	}
-	print(a);
-	if x>=a then{
-	x=x+1;
-}
-	bool x=a==b;
-	do{
-		int b=1;
-		b=b*10;
-		a=(b+10)*b;
-	}while(a>1);
-	print(a+1);
-int 11aa;
+
+	/* This is 
+	another
+	comment */
+
+	do {
+	b= b+1;
+	}
+	while (b > 10);
 end
