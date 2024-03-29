@@ -10,6 +10,7 @@ Where:
 
 Other special character such as `{, }, *, +, (, )` represent themself.
 Uppercase symbols are non-terminals.
+`e` represents the epsilon character
 
 ##### *a. Original rules*
 1. `P -> begin SL end`
