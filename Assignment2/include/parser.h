@@ -20,11 +20,9 @@ typedef enum{
     DW,
     DStail,
     IFtail,
-    DWtail,
     _E,
     _K,
     _T,
-    _F,
 
     _begin,
     _end,
@@ -81,5 +79,24 @@ class Node{
 void parser(Token tokens[]);
 void printParserTree();
 
+Node *P_Node(Token tokens[]);
+Node *SL_Node(Token tokens[]);
+Node *S_Node(Token tokens[]);
+Node *BS_Node(Token tokens[]);
+Node *DS_Node(Token tokens[]);
+Node *CS_Node(Token tokens[]);
+
+Node *E_Node(Token tokens[]);
+Node *K_Node(Token tokens[]);
+Node *T_Node(Token tokens[]);
+Node *F_Node(Token tokens[]);
+Node *IF_Node(Token tokens[]);
+Node *DW_Node(Token tokens[]);
+Node *DStail_Node(Token tokens[]);
+Node *IFtail_Node(Token tokens[]);
+
+Node *_E_Node(Token tokens[]);
+Node *_K_Node(Token tokens[]);
+Node *_T_Node(Token tokens[]);
 
 #endif

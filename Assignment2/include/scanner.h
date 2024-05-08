@@ -2,6 +2,8 @@
 #include <string>
 #include <vector>
 
+using namespace std;
+
 typedef enum {
     START,
     IN_ID_1,
@@ -39,11 +41,9 @@ typedef enum {
     _while,
     _do,
     _then,
-    _begin,
     _end,
     type,
     _begin,
-    _end,
     _comment,
 } TokenType;
 
@@ -56,12 +56,6 @@ class Token{
         int position;
         TokenType tokenType;
     public:
-        Token(){
-            this->type = "";
-            this->value = "";
-            int line = 1;
-            int position = 1;
-        }
         Token(string type, string value, int line, int position, TokenType tokenType){
             this->type = type;
             this->value = value;
