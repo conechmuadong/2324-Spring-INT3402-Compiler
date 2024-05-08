@@ -5,7 +5,8 @@
 #include <string>
 #include "scanner.h"
 
-typedef enum{
+typedef enum
+{
     P,
     SL,
     S,
@@ -28,6 +29,7 @@ typedef enum{
 
     _begin,
     _end,
+    cmt,
     type,
     id,
     number,
@@ -48,30 +50,33 @@ typedef enum{
     _then
 } NodeType;
 
+class Node
+{
+private:
+    Node *child;
+    NodeType type;
 
-class Node{
-    private:
-        Node *child;
-        NodeType type;
-
-    public:
-        Node(NodeType type){
-            this->type = type;
-            this->child = NULL;
-        }
-        void setChild(Node *child){
-            this->child = child;
-        }
-        Node *getChild(){
-            return this->child;
-        }
-        NodeType getType(){
-            return this->type;
-        }
+public:
+    Node(NodeType type)
+    {
+        this->type = type;
+        this->child = NULL;
+    }
+    void setChild(Node *child)
+    {
+        this->child = child;
+    }
+    Node *getChild()
+    {
+        return this->child;
+    }
+    NodeType getType()
+    {
+        return this->type;
+    }
 };
 
 void parser(Token tokens[]);
 void printParserTree();
-
 
 #endif
