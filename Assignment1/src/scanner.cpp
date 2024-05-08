@@ -299,6 +299,7 @@ bool parser(string input, Token tokens[], int * error_pointer, string * error_sy
             case IN_MULTILINE_COMMENT:
                 if (input.substr(j, 1) == "*"){
                     state = IN_MULTILINE_COMMENT_END;
+                    j++;
                 }else if ( j == input.length() - 1){
                     tokens[i++] = Token("COMMENT", " ");
                     state = START;
@@ -340,11 +341,11 @@ bool parser(string input, Token tokens[], int * error_pointer, string * error_sy
 
 int main(int argc, char* argv[]) {
     if (argc < 3) {
-        cout <<"./parser expected 2 arguments but receive "<< argc << "\n" << "Usage: ./parser INPUT OUTPUT \n \t - INPUT: PATH to the input file \n \t -OUTPUT: PATH to file the parser will save the result to." << endl;
+        cout <<"./scanner expected 2 arguments but receive "<< argc << "\n" << "Usage: ./parser INPUT OUTPUT \n \t - INPUT: PATH to the input file \n \t -OUTPUT: PATH to file the parser will save the result to." << endl;
         return -1;
     }
 
-    string filename = argv[1];// "../example/input.in";
+    string filename = argv[1]; //"../example/input2.in";
     ifstream file(filename);
     string outputFilename = argv[2]; // "output.out";
     if (!file.is_open()) {
