@@ -21,12 +21,40 @@ typedef enum {
     UNDEFINE_TYPE,
 } Error;
 
+typedef enum {
+    id,
+    number,
+    assign,
+    semicolon,
+    brace_open,
+    brace_close,
+    parenthesis_open,
+    parenthesis_close,
+    add,
+    mult,
+    rel_op,
+    _print,
+    _if,
+    _else,
+    _while,
+    _do,
+    _then,
+    _begin,
+    _end,
+    type,
+    _begin,
+    _end,
+    _comment,
+} TokenType;
+
+
 class Token{
     private:
         string type;
         string value;
         int line;
         int position;
+        TokenType tokenType;
     public:
         Token(){
             this->type = "";
@@ -34,11 +62,12 @@ class Token{
             int line = 1;
             int position = 1;
         }
-        Token(string type, string value, int line, int position){
+        Token(string type, string value, int line, int position, TokenType tokenType){
             this->type = type;
             this->value = value;
             this->line = line;
             this->position = position;
+            this->tokenType = tokenType;
         }
         string getType(){
             return this->type;
@@ -48,6 +77,15 @@ class Token{
         }
         bool isDefined(Token other){
             return this->value == other.getValue();
+        }
+        int getLine(){
+            return this->line;
+        }
+        int getPosition(){
+            return this->position;
+        }
+        TokenType getTokenType(){
+            return this->tokenType;
         }
 };
 

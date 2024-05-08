@@ -45,7 +45,9 @@ typedef enum{
     _else,
     _while,
     _do,
-    _then
+    _then,
+    _comment,
+    _epsilon
 } NodeType;
 
 
@@ -55,12 +57,18 @@ class Node{
         NodeType type;
 
     public:
+        Node(){
+            this->child = NULL;
+        }
         Node(NodeType type){
             this->type = type;
             this->child = NULL;
         }
         void setChild(Node *child){
             this->child = child;
+        }
+        void setType(NodeType type){
+            this->type = type;
         }
         Node *getChild(){
             return this->child;
