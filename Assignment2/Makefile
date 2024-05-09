@@ -1,5 +1,5 @@
 INCLUDES = -I ./include
-CC = g++
+CC = g++ -g -Wall
 SOURCE = ./src
 OBJECT = ./obj
 

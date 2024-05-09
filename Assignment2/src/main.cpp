@@ -53,13 +53,16 @@ int main(int argc, char* argv[]) {
         return -1;
     }
     outputFile.close();
-    parser(tokens);
+    Node root = Node();
+    parser(tokens, root);
+
     string parserTree = "";
     if (argc == 4) {
         parserTree = argv[3];
     }
     else{
-        parserTree = "./out/parser_tree.txt"
+        parserTree = "./out/parser_tree.txt";
     }
-    saveParserTree(, parserTree);
+    printParserTree(&root, parserTree);
+    return 0;
 }
