@@ -10,4 +10,9 @@
 <ADD_OP,  >
 <NUM, 10>
 <SEMI,  >
+<ID, b>
+<ASSIGN,  >
+<ID, b>
+<NUM, 2>
+<SEMI,  >
 <END,  >

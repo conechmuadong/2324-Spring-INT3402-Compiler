@@ -22,7 +22,6 @@ int main(int argc, char* argv[]) {
     }
 
     string input;
-    int i = 0;
     while (!file.eof()) {
         input.append(1, file.get());
     }
@@ -54,15 +53,19 @@ int main(int argc, char* argv[]) {
     }
     outputFile.close();
     Node root = Node();
-    parser(tokens, root);
-
-    string parserTree = "";
-    if (argc == 4) {
-        parserTree = argv[3];
+    if(parser(tokens, root)){
+        string parserTree = "";
+        if (argc == 4) {
+            parserTree = argv[3];
+        }
+        else{
+            parserTree = "./out/parser_tree.txt";
+        }
+        printParserTree(&root, parserTree);
+        return 0;
     }
-    else{
-        parserTree = "./out/parser_tree.txt";
+    else {
+        error_anounce(filename);
+        return -1;
     }
-    printParserTree(&root, parserTree);
-    return 0;
 }

@@ -21,7 +21,7 @@ typedef enum {
     UNDEFINE_SYMBOL,
     REDEFINE_SYMBOL,
     UNDEFINE_TYPE,
-} Error;
+} ScannerError;
 
 typedef enum {
     _id_,

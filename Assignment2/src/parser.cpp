@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <fstream>
+#include <sstream>
 #include "parser.h"
 
 using namespace std;
@@ -52,37 +53,68 @@ string nodeType[]{
     "ε"
 };
 
+string ErrorMessage[]{
+    "program must start with \"begin\"",
+    "program must end with \"end\"",
+    "expected a ;",
+    "expected a {",
+    "expected a }",
+    "expected a (",
+    "expected a )",
+    "can't resolve the symbol",
+    "expected an identifier",
+    "expected an =",
+    "expected an expression"
+    " "
+    "user-defined literal operator not found",
+    "if statement must contain \"then\" after condition"
+    "do-while statement must contain \"while\" in front of condition"
+};
+
+vector<Error> errors = vector<Error>();
+
 bool parser(Token tokens[], Node &node){
     // node = new Node(P);
     bool is_error = false;
     node = *P_Node(tokens, &is_error);
-    cout << node.getType() << endl;
-    cout << "debug1\n";
-    cout << node.child->size() << endl;
-    cout << "debug2\n";
-    if (!is_error){
-        cout << "Parser success" << endl;
-    }
-    return is_error;
+    return !is_error;
+}
+void printRedString(const std::string& str) {
+    cout << "\033[1;31m" << str << "\033[0m";
 }
 
-// void error_anounce(ErrorType error, int line, int position){
-//     switch (error)
-//     {
-//     case ERROR_MISSING_BEGIN:
-//         /* code */
-//         break;
+void printBoldString(const std::string& str) {
+    cout << "\033[1m" << str << "\033[0m";
+}
+
+void printError(Error error, string filename){
+    printBoldString(filename+":"+to_string(error.line)+":"+to_string(error.position)+":");
+    printRedString(" error: ");
+    if (error.errorType == UNDEFINE_SYMBOL){
+        cout << "identifier \'"+error.token.getValue()+"\' is undefined";
+        return;
+    }
+    cout << ErrorMessage[error.errorType] << endl;
+}
+
+void error_anounce(string filename){
+    for (auto error: errors){
+        printError(error, filename);
+    }
+}
+
+void add_error(ErrorType error, Token token){
+    Error e = Error(error, token.getLine(), token.getPosition());
+    if (UNDEFINE_SYMBOL == error){
+        e.token = token;
+    }
+    errors.push_back(e);
     
-//     default:
-//         break;
-//     }
-// }
+}
 
 Node *P_Node(Token token[], bool *is_error)
 {
-    // TODO: Implement generation rules for non-terminal P
     // P -> CP'C
-
     Node *node = new Node(P);
     node->child->push_back(*C_Node(token, is_error));
     node->child->push_back(*_P_Node(token, is_error));
@@ -139,24 +171,15 @@ Node *_P_Node(Token tokens[], bool *is_error)
         }
         else
         {
-            // TODO : Error handling missing end
-            cout << "Error missing end" << endl;
+            add_error(ErrorType::EXPECTED_END, tokens[index]);
+            *is_error = true;   
         }
     }
     else
     {
-        cout << "Error missing begin" << endl;
-        // TODO : Error handling missing begin
+       add_error(ErrorType::EXPECTED_BEGIN, tokens[index]); 
+       *is_error = true;
     }
-
-    // 
-    cout << "P_Node" << endl;
-    if (node->child->size() == 0)
-    {
-        cout << "Error in P_Node" << endl;
-    }
-    // Node child1 = node->child.at(1);
-    cout<< node->child->at(0).getType() << endl;
     return node;
 }
 
@@ -184,7 +207,8 @@ Node *SL_Node(Token tokens[], bool *is_error)
         }
         else
         {
-            // TODO : Error handling missing semicolon
+            add_error(ErrorType::EXPECTED_SEMI, tokens[index]);
+            *is_error = true;
         }
     }
     else if (tokens[index].getTokenType() == _if_ || tokens[index].getTokenType() == _do_)
@@ -215,12 +239,9 @@ Node *SL_Node(Token tokens[], bool *is_error)
     }
     else
     {
-        // TODO : Error handling Error in SL
+        add_error(ErrorType::UNDEFINED_STATEMENT, tokens[index]);
+        *is_error = true;
     }
-    cout << "SL_Node" << endl;
-    // add child to node
-    
-    cout << node->child->at(0).getType() << endl;
     return node;
 }
 
@@ -241,18 +262,11 @@ Node *S_Node(Token tokens[], bool *is_error)
     {
         node->child->push_back(*CS_Node(tokens, is_error));
     }
-    else
-    {
-        // TODO : Error handling missing type, id, print
-    }
-    // 
     return node;
 }
 
 Node *BS_Node(Token tokens[], bool *is_error)
 {
-    // TODO: Implement generation rules for non-terminal BS
-    //BS -> DW | IF
     Node *node = new Node(BS);
     
     if (tokens[index].getTokenType()==TokenType::_if_){
@@ -260,13 +274,7 @@ Node *BS_Node(Token tokens[], bool *is_error)
     }
     else if (tokens[index].getTokenType()==TokenType::_do_){
         node->child->push_back(*DW_Node(tokens, is_error));
-    }
-    else{
-        //TODO: Add error handling
-        *is_error = true;
-        return node;
-    }
-    // 
+    } 
     return node;
 }
 
@@ -276,8 +284,6 @@ Node *DS_Node(Token tokens[], bool *is_error)
     //  DS -> type id DStail
 
     Node *node = new Node(DS);
-    
-    int child_id = 0;
 
     if (tokens[index].getTokenType() == _type_)
     {
@@ -297,15 +303,10 @@ Node *DS_Node(Token tokens[], bool *is_error)
         }
         else
         {
-            // TODO : Error handling missing id
+            add_error(ErrorType::EXPECTED_ID, tokens[index]);
+            *is_error = true;
         }
-    }
-    else
-    {
-        // TODO : Error handling missing type
-    }
-
-    
+    }    
     return node;
 }
 
@@ -316,12 +317,15 @@ Node *CS_Node(Token tokens[], bool *is_error)
 
     Node *node = new Node(CS);
     
-    int child_id = 0;
     cout << tokens[index].getType() << endl;
     if (tokens[index].getTokenType() == _id_)
     {
         index++;
         Node *temp = new Node(NodeType::id);
+        if (!checkDefine(tokens[index], tokens, sizeof(tokens)/sizeof(tokens[0]))){
+            add_error(ErrorType::UNDEFINED_SYMBOL, tokens[index]);
+            *is_error = true;
+        }
         node->child->push_back(*temp);
 
         if (tokens[index].getTokenType() == _assign_)
@@ -337,7 +341,8 @@ Node *CS_Node(Token tokens[], bool *is_error)
         }
         else
         {
-            // TODO: Error handling missing assign
+            add_error(ErrorType::EXPECTED_ASSIGN, tokens[index]);
+            *is_error = true;
         }
     }
     else if (tokens[index].getTokenType() == _print_)
@@ -366,20 +371,16 @@ Node *CS_Node(Token tokens[], bool *is_error)
             }
             else
             {
-                // TODO: Error handling missing parenthesis_close
+                add_error(ErrorType::EXPECTED_PAREN_CLOSE, tokens[index]);
+                *is_error = true;
             }
         }
         else
         {
-            // TODO: Error handling missing parenthesis_open
+            add_error(ErrorType::EXPECTED_PAREN_OPEN, tokens[index]);
+            *is_error = true;
         }
     }
-    else
-    {
-        // TODO: Error handling missing id, _print
-    }
-    cout << "CS_Node" << endl;
-    cout << nodeType[node->child->at(0).getType()] << endl;
     return node;
 }
 
@@ -399,14 +400,11 @@ Node *E_Node(Token tokens[], bool *is_error)
 
         Node *temp1 = _E_Node(tokens, is_error);
         node->child->push_back(*temp1);
-        
     }
-    else
-    {
-        // TODO: Error handling missing id, number, parenthesis_open
+    else{
+        add_error(ErrorType::EXPECTED_EXPRESSION, tokens[index]);
+        *is_error = true;
     }
-
-    
     return node;
 }
 
@@ -416,8 +414,6 @@ Node *K_Node(Token tokens[], bool *is_error)
     //  K -> TK'
 
     Node *node = new Node(K);
-    
-    int child_id = 0;
 
     if (tokens[index].getTokenType() == _id_ || tokens[index].getTokenType() == _number_ || tokens[index].getTokenType() == _parenthesis_open_)
     {
@@ -427,13 +423,7 @@ Node *K_Node(Token tokens[], bool *is_error)
         Node *temp1 = _K_Node(tokens, is_error);
         node->child->push_back(*temp1);
         
-    }
-    else
-    {
-        // TODO: Error handling missing id, number, parenthesis_open
-    }
-
-    
+    }    
     return node;
 }
 
@@ -447,11 +437,6 @@ Node *T_Node(Token tokens[], bool *is_error)
         node->child->push_back(*F_Node(tokens, is_error));
         node->child->push_back(*_T_Node(tokens, is_error));
     }
-    else
-    {
-        // TODO: Add error handling
-    }
-    
     return node;
 }
 
@@ -461,11 +446,14 @@ Node *F_Node(Token tokens[], bool *is_error)
     // F-> id | number | (E) 
     Node *node = new Node(F);
     
-    int child_index = 0;
     if (tokens[index].getTokenType()==_id_){
         index++;
         Node * temp = new Node(NodeType::id);
         node->child->push_back(*temp);
+        if (!checkDefine(tokens[index], tokens, sizeof(tokens)/sizeof(tokens[0]))){
+            add_error(ErrorType::UNDEFINED_SYMBOL, tokens[index]);
+            *is_error = true;
+        }
     }
     else if (tokens[index].getTokenType()==_number_){
         index++;
@@ -485,14 +473,10 @@ Node *F_Node(Token tokens[], bool *is_error)
         }
         else
         {
-            // TODO: Add error handling
+            add_error(ErrorType::EXPECTED_PAREN_CLOSE, tokens[index]);
+            *is_error = true;
         }
     }
-    else
-    {
-        // TODO: Add error handling
-    }
-    
     return node;
 }
 
@@ -518,9 +502,9 @@ Node *_E_Node(Token tokens[], bool *is_error)
         return node;
     }
     else{
-        //TODO: Add error handling
+        add_error(ErrorType::UNDEFINED_LITERAL, tokens[index]);
+        *is_error = true;
     }
-    // node->setChild(child);
     return node;
 }
 
@@ -547,7 +531,8 @@ Node *_K_Node(Token tokens[], bool *is_error)
     }
     else
     {
-        // TODO: Add error handling
+        add_error(ErrorType::UNDEFINED_LITERAL, tokens[index]);
+        *is_error = true;
     }
     
     return node;
@@ -575,17 +560,18 @@ Node *_T_Node(Token tokens[], bool *is_error){
     }
     else
     {
-        // TODO: Add error handling
+        add_error(ErrorType::UNDEFINED_LITERAL, tokens[index]);
+        *is_error = true;
     }
     
     return node;
 }
 
 Node *IF_Node(Token tokens[], bool *is_error){
-    // IF -> if (E) then SL IFtail
+    // IF -> if (E) then {SL} IFtail
     Node *node = new Node(IF);
-    
     node->child->push_back(* new Node(NodeType::_if));
+    index++;
     if (tokens[index].getTokenType()==_parenthesis_open_){
         index++;
         Node * temp = new Node(NodeType::parenthesis_open);
@@ -593,7 +579,8 @@ Node *IF_Node(Token tokens[], bool *is_error){
     }
     else
     {
-        // TODO: Add error handling
+        add_error(ErrorType::EXPECTED_PAREN_OPEN, tokens[index]);
+        *is_error = true;
     }
     node->child->push_back(*E_Node(tokens, is_error));
     if (tokens[index].getTokenType()==_parenthesis_close_){
@@ -603,7 +590,8 @@ Node *IF_Node(Token tokens[], bool *is_error){
     }
     else
     {
-        // TODO: Add error handling
+        add_error(ErrorType::EXPECTED_PAREN_CLOSE, tokens[index]);
+        *is_error = true;
     }
     if (tokens[index].getTokenType()==_then_){
         index++;
@@ -612,22 +600,9 @@ Node *IF_Node(Token tokens[], bool *is_error){
     }
     else
     {
-        // TODO: Add error handling
+        add_error(ErrorType::EXPECTED_THEN, tokens[index]);
+        *is_error = true;
     }
-    node->child->push_back(*SL_Node(tokens, is_error));
-    node->child->push_back(*IFtail_Node(tokens, is_error));
-    
-    return node;
-}
-
-Node *DW_Node(Token tokens[], bool *is_error){
-    // DW -> do {SL} while (E);
-    Node *node = new Node(DW);
-    
-    int child_index = 1;
-    index++;
-    Node * temp = new Node(NodeType::_do);
-    node->child->push_back(*temp);
     if (tokens[index].getTokenType()==_brace_open_){
         index++;
         Node * temp = new Node(NodeType::brace_open);
@@ -635,7 +610,8 @@ Node *DW_Node(Token tokens[], bool *is_error){
     }
     else
     {
-        // TODO: Add error handling
+        add_error(ErrorType::EXPECTED_BRACKET_OPEN, tokens[index]);
+        *is_error = true;
     }
     node->child->push_back(*SL_Node(tokens, is_error));
     if (tokens[index].getTokenType()==_brace_close_){
@@ -645,7 +621,40 @@ Node *DW_Node(Token tokens[], bool *is_error){
     }
     else
     {
-        // TODO: Add error handling
+        add_error(ErrorType::EXPECTED_BRACKET_CLOSE, tokens[index]);
+        *is_error = true;
+    }
+    node->child->push_back(*IFtail_Node(tokens, is_error));
+    
+    return node;
+}
+
+Node *DW_Node(Token tokens[], bool *is_error){
+    // DW -> do SL while (E);
+    Node *node = new Node(DW);
+    
+    Node * temp = new Node(NodeType::_do);
+    node->child->push_back(*temp);
+    if (tokens[index].getTokenType()==_brace_open_){
+        index++;
+        Node * temp = new Node(NodeType::brace_open);
+        node->child->push_back(*temp);
+    }
+    else
+    {
+        add_error(ErrorType::EXPECTED_BRACKET_OPEN, tokens[index]);
+        *is_error = true;
+    }
+    node->child->push_back(*SL_Node(tokens, is_error));
+    if (tokens[index].getTokenType()==_brace_close_){
+        index++;
+        Node * temp = new Node(NodeType::brace_close);
+        node->child->push_back(*temp);
+    }
+    else
+    {
+        add_error(ErrorType::EXPECTED_BRACKET_CLOSE, tokens[index]);
+        *is_error = true;
     }
     if (tokens[index].getTokenType()==_while_){
         index++;
@@ -654,7 +663,8 @@ Node *DW_Node(Token tokens[], bool *is_error){
     }
     else
     {
-        // TODO: Add error handling
+        add_error(ErrorType::EXPECTED_WHILE, tokens[index]);
+        *is_error = true;
     }
     if (tokens[index].getTokenType()==_parenthesis_open_){
         index++;
@@ -663,7 +673,8 @@ Node *DW_Node(Token tokens[], bool *is_error){
     }
     else
     {
-        // TODO: Add error handling
+        add_error(ErrorType::EXPECTED_PAREN_OPEN, tokens[index]);
+        *is_error = true;
     }
     node->child->push_back(*E_Node(tokens, is_error));
     if (tokens[index].getTokenType()==_parenthesis_close_){
@@ -673,7 +684,8 @@ Node *DW_Node(Token tokens[], bool *is_error){
     }
     else
     {
-        // TODO: Add error handling
+        add_error(ErrorType::EXPECTED_PAREN_CLOSE, tokens[index]);
+        *is_error = true;
     }
     
     return node;
@@ -683,7 +695,6 @@ Node *DStail_Node(Token tokens[], bool *is_error){
     //DSTail -> e | = E
     Node *node = new Node(DStail);
     
-    int child_index = 0;
     if (tokens[index].getTokenType()==_assign_){
         index++;
         Node * temp = new Node(NodeType::assign);
@@ -697,7 +708,8 @@ Node *DStail_Node(Token tokens[], bool *is_error){
     }
     else
     {
-        // TODO: Add error handling
+        add_error(ErrorType::EXPECTED_SEMI, tokens[index]);
+        *is_error = true;
     }
     node->child->push_back(*E_Node(tokens, is_error));
     return node;
@@ -714,15 +726,17 @@ Node *IFtail_Node(Token tokens[], bool *is_error){
         node->child->push_back(*temp);
     }
     // IFtail -> e
-    else if (tokens[index].getTokenType()==_semicolon_){
+    else if (tokens[index].getTokenType()==_end_ || tokens[index].getTokenType()==_comment_
+            || tokens[index].getTokenType()==_type_ || tokens[index].getTokenType()==_id_|| tokens[index].getTokenType()==_print_
+            || tokens[index].getTokenType()==_do_ || tokens[index].getTokenType()==_if_){
         Node * temp = new Node(NodeType::_epsilon);
         node->child->push_back(*temp);
-        
         return node;
     }
     else
     {
-        // TODO: Add error handling
+        add_error(ErrorType::UNDEFINED_LITERAL, tokens[index]);
+        *is_error = true;
     }
     node->child->push_back(*SL_Node(tokens, is_error));
     

@@ -1,6 +1,5 @@
 #ifndef PARSER_H
 #define PARSER_H
-
 #include <iostream>
 #include <string>
 #include "scanner.h"
@@ -52,6 +51,40 @@ typedef enum
     _epsilon
 } NodeType;
 
+typedef enum{
+    EXPECTED_BEGIN,
+    EXPECTED_END,
+    EXPECTED_SEMI,
+    EXPECTED_BRACKET_OPEN,
+    EXPECTED_BRACKET_CLOSE,
+    EXPECTED_PAREN_OPEN,
+    EXPECTED_PAREN_CLOSE,
+    UNDEFINED_STATEMENT,
+    EXPECTED_ID,
+    EXPECTED_ASSIGN,
+    EXPECTED_EXPRESSION,
+    UNDEFINED_SYMBOL,
+    UNDEFINED_LITERAL,
+    EXPECTED_THEN,
+    EXPECTED_WHILE,
+
+} ErrorType;
+
+class Error
+{
+    public:
+        ErrorType errorType;
+        int line;
+        int position;
+        Token token;
+        Error(ErrorType errorType, int line, int position)
+        {
+            this->errorType = errorType;
+            this->line = line;
+            this->position = position;
+        }
+};
+
 class Node
 {
 private:
@@ -82,6 +115,7 @@ private:
 
 bool parser(Token tokens[], Node &root);
 void printParserTree(Node *node, std::string filename);
+void error_anounce(string filename);
 
 Node *P_Node(Token tokens[], bool *is_error);
 Node *_P_Node(Token tokens[], bool *is_error);
@@ -106,6 +140,4 @@ Node *_K_Node(Token tokens[], bool *is_error);
 Node *_T_Node(Token tokens[], bool *is_error);
 
 // void saveParserTree();
-
-
 #endif
