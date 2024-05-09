@@ -71,7 +71,7 @@ bool scanner(string input, Token tokens[], int * error_pointer, string * error_s
                 } 
                 else {
                     state = START;
-                    tokens[i++] = Token("ID", token, *error_line, k);
+                    tokens[i++] = Token("ID", token, *error_line, k, TokenType::_id_);
                     if (tokens[i-2].getType() == "TYPE" && checkDefine(tokens[i-1], tokens, i-1)){
                         *error_type = REDEFINE_SYMBOL;
                         state = ERROR;
@@ -93,19 +93,7 @@ bool scanner(string input, Token tokens[], int * error_pointer, string * error_s
                 } 
                 else if (!regex_match(input.substr(j, 1), regex("[a-zA-Z0-9]+"))){
                     state = START;
-                    tokens[i++] = Token(tokenType, token, *error_line, k);
-                    if (tokens[i-2].getType() == "TYPE" && checkDefine(tokens[i-1], tokens, i-1)){
-                        *error_type = REDEFINE_SYMBOL;
-                        state = ERROR;
-                    }
-                    else if (tokens[i-2].getType()!="TYPE" && !checkDefine(tokens[i-1], tokens, i-1)){
-                        *error_type = UNDEFINE_SYMBOL;
-                        state = ERROR;
-                    }
-                    else{
-                        token = "";
-                        tokenType = "";
-                    }
+                    tokens[i++] = Token(tokenType, token, *error_line, k, TokenType::_id_);
                 }
                 else {
                     state = ERROR;
@@ -119,7 +107,7 @@ bool scanner(string input, Token tokens[], int * error_pointer, string * error_s
                 } 
                 else if (!regex_match(input.substr(j, 1), regex("[a-zA-Z0-9]+"))){
                     state = START;
-                    tokens[i++] = Token(tokenType, token, *error_line, k);
+                    tokens[i++] = Token(tokenType, token, *error_line, k, TokenType::_number_);
                     token = "";
                     tokenType = "";
                 }
@@ -131,39 +119,54 @@ bool scanner(string input, Token tokens[], int * error_pointer, string * error_s
             case IN_SPECIAL:
                 state = START;
                 if (token == ";"){
-                    tokens[i++] = Token("SEMI", " ", *error_line, k);
+                    tokens[i++] = Token("SEMI", " ", *error_line, k, TokenType::_semicolon_);
                 }
                 else if (token == ">"){
                     if (input[j+1] == '='){
-                        tokens[i++] = Token("REL_OP", ">=", *error_line, k);
+                        tokens[i++] = Token("REL_OP", ">=", *error_line, k, TokenType::_rel_op_);
                         j++;
                     }
                     else{
-                        tokens[i++] = Token("REL_OP", token, *error_line, k);
+                        tokens[i++] = Token("REL_OP", token, *error_line, k, TokenType::_rel_op_);
                     }
                     // tokens[i++] = Token("REL_OP", token);
                 }
                 else if (token == "="){
                     if (input[j+1] == '='){
-                        tokens[i++] = Token("REL_OP", "==", *error_line, k);
+                        tokens[i++] = Token("REL_OP", "==", *error_line, k, TokenType::_rel_op_);
                         j++;
                     }
                     else{
-                        tokens[i++] = Token("ASSIGN", " ", *error_line, k);
+                        tokens[i++] = Token("ASSIGN", " ", *error_line, k, TokenType::_assign_);
                     }
                     // tokens[i++] = Token("ASSIGN", " ", *error_line, k);
                 }
                 else if (token == "{" || token=="}" || token == "(" || token == ")")
                 {
-                    tokens[i++] = Token("BRACKET", token, *error_line, k);
+                    if (token == "{")
+                    {
+                        tokens[i++] = Token("BRACE_OPEN", " ", *error_line, k, TokenType::_brace_open_);
+                    }
+                    else if (token == "}")
+                    {
+                        tokens[i++] = Token("BRACE_CLOSE", " ", *error_line, k, TokenType::_brace_close_);
+                    }
+                    else if (token == "(")
+                    {
+                        tokens[i++] = Token("PARENTHESIS_OPEN", " ", *error_line, k, TokenType::_parenthesis_open_);
+                    }
+                    else if (token == ")")
+                    {
+                        tokens[i++] = Token("PARENTHESIS_CLOSE", " ", *error_line, k, TokenType::_parenthesis_close_);
+                    }
                 }                                      
                 else if (token == "+")
                 {
-                    tokens[i++] = Token("ADD_OP", " ", *error_line, k);
+                    tokens[i++] = Token("ADD_OP", " ", *error_line, k, TokenType::_add_);
                 }
                 else if (token == "*")
                 {
-                    tokens[i++] = Token("MUL_OP", " ", *error_line, k);
+                    tokens[i++] = Token("MUL_OP", " ", *error_line, k, TokenType::_mult_);
                 }
                 else if (token == "/*")
                 {
@@ -197,44 +200,33 @@ bool scanner(string input, Token tokens[], int * error_pointer, string * error_s
                 if (regex_match(input.substr(j,1), regex("[;>={}()]")) || input.substr(j, 1) == " "||input[j] == '\n'){
                     state = START;
                     if(token == "if")
-                        tokens[i++] = Token("IF", " ", *error_line, k);
+                        tokens[i++] = Token("IF", " ", *error_line, k, TokenType::_if_);
                     else if (token == "then"){
-                        tokens[i++] = Token("THEN", " ", *error_line, k);
+                        tokens[i++] = Token("THEN", " ", *error_line, k, TokenType::_then_);
                     }
                     else if (token == "else"){
-                        tokens[i++] = Token("ELSE", " ", *error_line, k);
+                        tokens[i++] = Token("ELSE", " ", *error_line, k, TokenType::_else_);
                     }
                     else if (token == "do")
                     {
-                        tokens[i++] = Token("DO", " ", *error_line, k);
+                        tokens[i++] = Token("DO", " ", *error_line, k, TokenType::_do_);
                     }
                     else if (token == "while")
                     {
-                        tokens[i++] = Token("WHILE", " ", *error_line, k);
+                        tokens[i++] = Token("WHILE", " ", *error_line, k, TokenType::_while_);
                     }
                     else if (token == "begin"){
-                        tokens[i++] = Token("BEGIN", " ", *error_line, k);
+                        tokens[i++] = Token("BEGIN", " ", *error_line, k, TokenType::_begin_);
                     } 
                     else if (token == "end"){
-                        tokens[i++] = Token("END", " ", *error_line, k);
+                        tokens[i++] = Token("END", " ", *error_line, k, TokenType::_end_);
                     }
                     else if (token == "print")
                     {
-                        tokens[i++] = Token("PRINT", " ", *error_line, k);
+                        tokens[i++] = Token("PRINT", " ", *error_line, k, TokenType::_print_);
                     }
                     else if (token == "bool" || token == "int"){
-                        tokens[i++] = Token("TYPE", token, *error_line, k);
-                    }
-                    else{                   
-                        tokens[i++] = Token("ID", token, *error_line, k);
-                        if (tokens[i-2].getType() == "TYPE" && checkDefine(tokens[i-1], tokens, i-1)){
-                        *error_type = REDEFINE_SYMBOL;
-                        state = ERROR;
-                        }
-                        else if (tokens[i-2].getType()!="TYPE" && !checkDefine(tokens[i-1], tokens, i-1)){
-                            *error_type = UNDEFINE_SYMBOL;
-                            state = ERROR;
-                        }
+                        tokens[i++] = Token("TYPE", token, *error_line, k, TokenType::_type_);
                     }
                     if (state != ERROR){
                         token = "";
@@ -260,7 +252,7 @@ bool scanner(string input, Token tokens[], int * error_pointer, string * error_s
                     state = IN_MULTILINE_COMMENT_END;
                     j++;
                 }else if ( j == input.length() - 1){
-                    tokens[i++] = Token("COMMENT", " ", *error_line, k);
+                    tokens[i++] = Token("COMMENT", " ", *error_line, k, TokenType::_comment_);
                     state = START;
                 } 
                 else {
@@ -270,13 +262,13 @@ bool scanner(string input, Token tokens[], int * error_pointer, string * error_s
             case IN_MULTILINE_COMMENT_END:
                 if (input.substr(j, 1) == "/"){
                     state = START;
-                    tokens[i++] = Token("COMMENT", " ", *error_line, k);
+                    tokens[i++] = Token("COMMENT", " ", *error_line, k, TokenType::_comment_);
                     token = "";
                     tokenType = "";
                     j++;
                 }
                 else if ( j == input.length() - 1){
-                    tokens[i++] = Token("COMMENT", " ", *error_line, k);
+                    tokens[i++] = Token("COMMENT", " ", *error_line, k, TokenType::_comment_);
                     state = START;
                 }
                 else {
@@ -286,7 +278,7 @@ bool scanner(string input, Token tokens[], int * error_pointer, string * error_s
             case IN_INLINE_COMMENT:
                 if (input.substr(j, 1) == "\n"){
                     state = START;
-                    tokens[i++] = Token("COMMENT", " ", *error_line, k);
+                    tokens[i++] = Token("COMMENT", " ", *error_line, k, TokenType::_comment_);
                     token = "";
                     tokenType = "";
                 } else {
