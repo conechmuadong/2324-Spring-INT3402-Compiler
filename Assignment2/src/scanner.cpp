@@ -6,8 +6,8 @@
 
 using namespace std;
 
-bool checkDefine(Token token, Token tokens[], int lenght){
-    for (int i = 0; i < lenght; i++){
+bool checkDefine(Token token, Token tokens[], int length){
+    for (int i = 0; i < length; i++){
         if (tokens[i].isDefined(token) && tokens[i].getType() == "ID"){
             return true;
         }
@@ -72,18 +72,8 @@ bool scanner(string input, Token tokens[], int * error_pointer, string * error_s
                 else {
                     state = START;
                     tokens[i++] = Token("ID", token, *error_line, k, TokenType::_id_);
-                    if (tokens[i-2].getType() == "TYPE" && checkDefine(tokens[i-1], tokens, i-1)){
-                        *error_type = REDEFINE_SYMBOL;
-                        state = ERROR;
-                    }
-                    else if (tokens[i-2].getType()!="TYPE" && !checkDefine(tokens[i-1], tokens, i-1)){
-                        *error_type = UNDEFINE_SYMBOL;
-                        state = ERROR;
-                    }
-                    else{
-                        token = "";
-                        tokenType = "";
-                    }
+                    token = "";
+                    tokenType = "";
                 }
                 break;
             case IN_ID_2:

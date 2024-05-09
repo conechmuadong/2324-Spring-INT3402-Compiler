@@ -13,7 +13,7 @@ Uppercase symbols are non-terminals.
 `e` represents the epsilon character
 
 ##### *a. Original rules*
-1. `P -> begin SL end`
+1. `P -> CP'C`
 2. `SL -> S ; SL | BS SL | cmt SL | e`
 3. `S -> DS | CS`
 4. `BS -> IF | DW`

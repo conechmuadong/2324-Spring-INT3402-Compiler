@@ -21,7 +21,7 @@ typedef enum {
     UNDEFINE_SYMBOL,
     REDEFINE_SYMBOL,
     UNDEFINE_TYPE,
-} Error;
+} ScannerError;
 
 typedef enum {
     _id_,
@@ -56,6 +56,13 @@ class Token{
         int position;
         TokenType tokenType;
     public:
+        Token(){
+            this->type = "";
+            this->value = "";
+            this->line = 0;
+            this->position = 0;
+            this->tokenType = _id_;
+        }
         Token(string type, string value, int line, int position, TokenType tokenType){
             this->type = type;
             this->value = value;
@@ -83,7 +90,7 @@ class Token{
         }
 };
 
-bool checkDefine(Token token, Token tokens[], int lenght);
+bool checkDefine(Token token, Token tokens[], int length);
 bool scanner(string input, Token tokens[], int * error_pointer, string * error_symbol, int * error_line, int * error_type);
 
 

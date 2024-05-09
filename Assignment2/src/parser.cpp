@@ -1,613 +1,777 @@
 #include <iostream>
 #include <string>
+#include <fstream>
+#include <sstream>
 #include "parser.h"
 
 using namespace std;
 
 int index = 0;
 
-void parser(Token tokens[]){
-    Node *root = new Node(P);
-    root = P_Node(tokens);
+string nodeType[]{
+    "P",
+    "P'",
+    "C",
+    "SL",
+    "S",
+    "BS",
+    "DS",
+    "CS",
+    "E",
+    "K",
+    "T",
+    "F",
+    "IF",
+    "DW",
+    "DStail",
+    "IFtail",
+    "E'",
+    "K'",
+    "T'",
+    "begin",
+    "end",
+    "cmt",
+    "type",
+    "id",
+    "number",
+    "assign",
+    ";",
+    "{",
+    "}",
+    "(",
+    ")",
+    "+",
+    "*",
+    "rel_op",
+    "print",
+    "if",
+    "else",
+    "while",
+    "do",
+    "then",
+    "comment",
+    "ε"
+};
+
+string ErrorMessage[]{
+    "program must start with \"begin\"",
+    "program must end with \"end\"",
+    "expected a ;",
+    "expected a {",
+    "expected a }",
+    "expected a (",
+    "expected a )",
+    "can't resolve the symbol",
+    "expected an identifier",
+    "expected an =",
+    "expected an expression",
+    "",
+    "user-defined literal operator not found",
+    "if statement must contain \"then\" after condition",
+    "do-while statement must contain \"while\" in front of condition",
+    "",
+};
+
+vector<Error> errors = vector<Error>();
+
+bool parser(Token tokens[], Node &node){
+    // node = new Node(P);
+    bool is_error = false;
+    node = *P_Node(tokens, &is_error);
+    return !is_error;
+}
+void printRedString(const std::string& str) {
+    cout << "\033[1;31m" << str << "\033[0m";
 }
 
-void error_anounce(ErrorType error, int line, int position){
-    switch (error)
+void printBoldString(const std::string& str) {
+    cout << "\033[1m" << str << "\033[0m";
+}
+
+void printError(Error error, string filename){
+    printBoldString(filename+":"+to_string(error.line)+":"+to_string(error.position)+":");
+    printRedString(" error: ");
+    if (error.errorType == ErrorType::UNDEFINED_SYMBOL){
+        cout << "identifier \'"+error.token.getValue()+"\' is undefined"<<endl;
+        return;
+    }
+    else if (error.errorType == REDEFINED_SYMBOL)
     {
-    case ERROR_MISSING_BEGIN:
-        /* code */
-        break;
+        cout << "identifier \'"+error.token.getValue()+"\' has conflicting declaration"<<endl;
+    }
     
-    default:
-        break;
+    cout << ErrorMessage[error.errorType] << endl;
+}
+
+void error_anounce(string filename){
+    for (auto error: errors){
+        printError(error, filename);
     }
 }
 
-Node *P_Node(Token tokens[])
+void add_error(ErrorType error, Token token){
+    Error e = Error(error, token.getLine(), token.getPosition());
+    if (ErrorType::UNDEFINED_SYMBOL == error){
+        e.token = token;
+    }
+    errors.push_back(e);
+    
+}
+
+Node *P_Node(Token token[], bool *is_error)
+{
+    // P -> CP'C
+    Node *node = new Node(P);
+    node->child->push_back(*C_Node(token, is_error));
+    node->child->push_back(*_P_Node(token, is_error));
+    node->child->push_back(*C_Node(token, is_error));
+    return node;
+}
+
+Node *C_Node(Token tokens[], bool *is_error)
+{
+    //C -> cmt C | ε;
+    Node *node = new Node(C);
+    if (tokens[index].getTokenType() == _comment_)
+    {
+        index++;
+        Node *temp = new Node(NodeType::_comment);
+        node->child->push_back(*temp);
+        Node *temp1 = C_Node(tokens, is_error);
+        node->child->push_back(*temp1);
+    }
+    else{
+        Node *temp = new Node(NodeType::_epsilon);
+        node->child->push_back(*temp);
+    }
+    return node;
+}
+
+Node *_P_Node(Token tokens[], bool *is_error)
 {
     // TODO: Implement generation rules for non-terminal P
-    //  P -> begin SL end
+    //  P' -> begin SL end
     //  Next token = ?
     //  If next token is begin -> SL_Node(tokens)
-    //  If next token is end -> return root
+    //  If next token is end -> return node
 
-    Node *node = new Node(P);
-    Node *child = (Node *)calloc(sizeof(Node), 3);
-    int child_id = 0;
+    Node *node = new Node(_P);
+    
 
-    if (tokens[index].getType() == "_begin")
+    cout << "P" << endl;
+    if (tokens[index].getTokenType() == _begin_)
     {
         index++;
         Node *temp = new Node(NodeType::_begin);
-        child[child_id] = *temp;
-        child_id++;
+        node->child->push_back(*temp);
 
-        Node *temp1 = new Node(NodeType::SL);
-        child[child_id] = *temp1;
-        child_id++;
+        Node *temp1 = SL_Node(tokens, is_error);
+        node->child->push_back(*temp1);
 
-        if (tokens[index].getType() == "_end")
+        if (tokens[index].getTokenType() == _end_)
+        if (tokens[index].getTokenType() == _end_)
         {
             Node *temp2 = new Node(NodeType::_end);
-            child[child_id] = *temp2;
-            child_id++;
+            node->child->push_back(*temp2);
             index++;
-            return node;
         }
         else
         {
-            // TODO : Error handling missing end
+            add_error(ErrorType::EXPECTED_END, tokens[index]);
+            *is_error = true;   
         }
     }
     else
     {
-        // TODO : Error handling missing begin
+       add_error(ErrorType::EXPECTED_BEGIN, tokens[index]); 
+       *is_error = true;
     }
-
-    node->setChild(child);
+    return node;
 }
 
-Node *SL_Node(Token tokens[])
+Node *SL_Node(Token tokens[], bool *is_error)
 {
     // TODO: Implement generation rules for non-terminal SL
     //  SL -> S ; SL | BS SL | cmt SL | epsilon
-
+    cout << "SL: " << tokens[index].getType()<<","<<tokens[index].getValue()<< endl;
     Node *node = new Node(SL);
-    Node *child = (Node *)calloc(sizeof(Node), 3);
-    int child_id = 0;
-    if (tokens[index].getType() == "id" || tokens[index].getType() == "type" || tokens[index].getType() == "_print")
+    
+    if (tokens[index].getTokenType() == _id_ || tokens[index].getTokenType() == _type_ || tokens[index].getTokenType() == _print_)
     {
-        index++;
-        Node *temp = new Node(NodeType::S);
-        child[child_id] = *temp;
-        child_id++;
-        if (tokens[index].getType() == "semicolon")
+        Node *temp = S_Node(tokens, is_error);
+        node->child->push_back(*temp);
+        if (tokens[index].getTokenType() == _semicolon_)
         {
             index++;
             // add semicolon & SL nodes
             Node *temp1 = new Node(NodeType::semicolon);
-            child[child_id] = *temp1;
-            child_id++;
+            node->child->push_back(*temp1);
 
-            Node *temp2 = new Node(NodeType::SL);
-            child[child_id] = *temp2;
-            child_id++;
+            Node * temp2 = SL_Node(tokens, is_error);
+            node->child->push_back(*temp2);
         }
         else
         {
-            // TODO : Error handling missing semicolon
+            cout << "Error: " << tokens[index].getType() << endl;
+            add_error(ErrorType::EXPECTED_SEMI, tokens[index]);
+            *is_error = true;
         }
     }
-    else if (tokens[index].getType() == "_if" || tokens[index].getType() == "_do")
+    else if (tokens[index].getTokenType() == _if_ || tokens[index].getTokenType() == _do_)
     {
         index++;
         // add BS SL node to child
-        Node *temp = new Node(NodeType::BS);
-        child[child_id] = *temp;
-        child_id++;
+        Node *temp = BS_Node(tokens, is_error);
+        node->child->push_back(*temp);
 
-        Node *temp1 = new Node(NodeType::SL);
-        child[child_id] = *temp;
-        child_id++;
+        Node *temp1 = SL_Node(tokens, is_error);
+        node->child->push_back(*temp1);    
     }
-    else if (tokens[index].getType() == "cmt")
+    else if (tokens[index].getTokenType() == _comment_)
     {
         index++;
         // add cmt and SL to child
         Node *temp = new Node(NodeType::cmt);
-        child[child_id] = *temp;
-        child_id++;
+        node->child->push_back(*temp);
 
-        Node *temp1 = new Node(NodeType::SL);
-        child[child_id] = *temp;
-        child_id++;
+        Node *temp1 = SL_Node(tokens, is_error);
+        node->child->push_back(*temp1);
+    }
+    // SL -> e
+    else if (tokens[index].getTokenType() == _end_ || tokens[index].getTokenType() == _brace_close_)
+    {
+        Node * temp = new Node(NodeType::_epsilon);
+        node->child->push_back(*temp);
     }
     else
     {
-        return node;
+        add_error(ErrorType::UNDEFINED_STATEMENT, tokens[index]);
+        *is_error = true;
     }
-
-    // add child to node
-    node->setChild(child);
+    return node;
 }
 
-Node *S_Node(Token tokens[])
+Node *S_Node(Token tokens[], bool *is_error)
 {
     // TODO: Implement generation rules for non-terminal S
     //  S -> DS | CS
 
     Node *node = new Node(S);
-    Node *child = (Node *)calloc(sizeof(Node), 1);
 
-    if (tokens[index].getType() == "type")
+    if (tokens[index].getTokenType() == _type_)
     {
-        index++;
-        node->setChild(DS_Node(tokens));
+        node->child->push_back(*DS_Node(tokens, is_error));
     }
-    else if (tokens[index].getType() == "id" || tokens[index].getType() == "_print")
+    else if (tokens[index].getTokenType() == _id_ || tokens[index].getTokenType() == _print_)
     {
-        index++;
-        node->setChild(CS_Node(tokens));
+        node->child->push_back(*CS_Node(tokens, is_error));
     }
+    return node;
 }
 
-Node *BS_Node(Token tokens[])
+Node *BS_Node(Token tokens[], bool *is_error)
 {
-    // TODO: Implement generation rules for non-terminal BS
-    //BS -> DW | IF
-    Node *root = new Node(BS);
-    Node *child = (Node *)calloc(sizeof(Node), 1);
-    if (tokens[index].getTokenType()==TokenType::_if){
-        child = IF_Node(tokens);
-    }
-    else if (tokens[index].getTokenType()==TokenType::_do){
-        child = DW_Node(tokens);
-    }
-    else{
-        //TODO: Add error handling
-    }
-    root->setChild(child);
-    return root;
-    //  BS -> IF | DW
-
     Node *node = new Node(BS);
-    Node *child = (Node *)calloc(sizeof(Node), 1);
-
-    if (tokens[index].getType() == "_if")
-    {
-        index++;
-        node->setChild(IF_Node(tokens));
+    
+    if (tokens[index].getTokenType()==TokenType::_if_){
+        node->child->push_back(*IF_Node(tokens, is_error));
     }
-    else if (tokens[index].getType() == "_do")
-    {
-        index++;
-        node->setChild(DW_Node(tokens));
-    }
-    else
-    {
-        // TODO : Error handling missing _if, _do
-    }
+    else if (tokens[index].getTokenType()==TokenType::_do_){
+        node->child->push_back(*DW_Node(tokens, is_error));
+    } 
+    return node;
 }
 
-Node *DS_Node(Token tokens[])
+Node *DS_Node(Token tokens[], bool *is_error)
 {
     // TODO: Implement generation rules for non-terminal DS
     //  DS -> type id DStail
 
     Node *node = new Node(DS);
-    Node *child = (Node *)calloc(sizeof(Node), 3);
-    int child_id = 0;
-
-    if (tokens[index].getType() == "type")
+    cout << "DS: "<<tokens[index].getType() << endl;
+    if (tokens[index].getTokenType() == _type_)
     {
         index++;
         Node *temp = new Node(NodeType::type);
-        child[child_id] = *temp;
-        child_id++;
+        node->child->push_back(*temp);
 
-        if (tokens[index].getType() == "id")
+        if (tokens[index].getTokenType() == _id_)
         {
-            index++;
             Node *temp1 = new Node(NodeType::id);
-            child[child_id] = *temp1;
-            child_id++;
-
-            Node *temp2 = new Node(NodeType::DStail);
-            child[child_id] = *temp2;
-            child_id++;
+            node->child->push_back(*temp1);
+            cout << tokens[index].getType() << endl;
+            if (checkDefine(tokens[index], tokens, index)){
+                add_error(ErrorType::REDEFINED_SYMBOL, tokens[index]);
+                *is_error = true;
+            }
+            index++;
+            node->child->push_back(*DStail_Node(tokens, is_error));
+            
         }
         else
         {
-            // TODO : Error handling missing id
+            add_error(ErrorType::EXPECTED_ID, tokens[index]);
+            *is_error = true;
         }
-    }
-    else
-    {
-        // TODO : Error handling missing type
-    }
-
-    node->setChild(child);
+    }    
+    return node;
 }
 
-Node *CS_Node(Token tokens[])
+Node *CS_Node(Token tokens[], bool *is_error)
 {
     // TODO: Implement generation rules for non-terminal CS
     //  CS -> id = E | print (E)
 
     Node *node = new Node(CS);
-    Node *child = (Node *)calloc(sizeof(Node), 3);
-    int child_id = 0;
-
-    if (tokens[index].getType() == "id")
+    cout << "CS: "<<tokens[index].getType() << endl;
+    if (tokens[index].getTokenType() == _id_)
     {
-        index++;
+        cout << tokens[index].getValue() << endl;
         Node *temp = new Node(NodeType::id);
-        child[child_id] = *temp;
-        child_id++;
-
-        if (tokens[index].getType() == "assign")
+        if (!checkDefine(tokens[index], tokens, index)){
+            add_error(ErrorType::UNDEFINED_SYMBOL, tokens[index]);
+            *is_error = true;
+        }
+        node->child->push_back(*temp);
+        index++;
+        if (tokens[index].getTokenType() == _assign_)
         {
             index++;
             Node *temp1 = new Node(NodeType::assign);
-            child[child_id] = *temp1;
-            child_id++;
+            node->child->push_back(*temp1);
+            
 
-            Node *temp = new Node(NodeType::type);
-            child[child_id] = *temp;
-            child_id++;
+            Node *temp = E_Node(tokens, is_error);
+            node->child->push_back(*temp);
+            
         }
         else
         {
-            // TODO: Error handling missing assign
+            add_error(ErrorType::EXPECTED_ASSIGN, tokens[index]);
+            *is_error = true;
         }
     }
-    else if (tokens[index].getType() == "_print")
+    else if (tokens[index].getTokenType() == _print_)
     {
         index++;
         Node *temp = new Node(NodeType::_print);
-        child[child_id] = *temp;
-        child_id++;
+        node->child->push_back(*temp);
 
-        if (tokens[index].getType() == "parenthesis_open")
+        if (tokens[index].getTokenType() == _parenthesis_open_)
         {
             index++;
             Node *temp1 = new Node(NodeType::parenthesis_open);
-            child[child_id] = *temp1;
-            child_id++;
+            node->child->push_back(*temp1);
+            
 
-            Node *temp2 = new Node(NodeType::E);
-            child[child_id] = *temp2;
-            child_id++;
+            Node *temp2 = E_Node(tokens, is_error);
+            node->child->push_back(*temp2);
+            
 
-            if (tokens[index].getType() == "parenthesis_close")
+            if (tokens[index].getTokenType() == _parenthesis_close_)
             {
                 index++;
                 Node *temp3 = new Node(NodeType::parenthesis_close);
-                child[child_id] = *temp3;
-                child_id++;
+                node->child->push_back(*temp3);
+                
             }
             else
             {
-                // TODO: Error handling missing parenthesis_close
+                add_error(ErrorType::EXPECTED_PAREN_CLOSE, tokens[index]);
+                *is_error = true;
             }
         }
         else
         {
-            // TODO: Error handling missing parenthesis_open
+            add_error(ErrorType::EXPECTED_PAREN_OPEN, tokens[index]);
+            *is_error = true;
         }
     }
-    else
-    {
-        // TODO: Error handling missing id, _print
-    }
-
-    node->setChild(child);
+    return node;
 }
 
-Node *E_Node(Token tokens[])
+Node *E_Node(Token tokens[], bool *is_error)
 {
     // TODO: Implement generation rules for non-terminal E
     //  E -> KE'
 
     Node *node = new Node(E);
-    Node *child = (Node *)calloc(sizeof(Node), 2);
+    
     int child_id = 0;
 
-    if (tokens[index].getType() == "id" || tokens[index].getType() == "number" || tokens[index].getType() == "parenthesis_open")
+    if (tokens[index].getTokenType() == _id_ || tokens[index].getTokenType() == _number_ || tokens[index].getTokenType() == _parenthesis_open_)
     {
-        Node *temp = new Node(NodeType::K);
-        child[child_id] = *temp;
-        child_id++;
+        Node *temp = K_Node(tokens, is_error);
+        node->child->push_back(*temp);
 
-        Node *temp1 = new Node(NodeType::_E);
-        child[child_id] = *temp1;
-        child_id++;
+        Node *temp1 = _E_Node(tokens, is_error);
+        node->child->push_back(*temp1);
     }
-    else
-    {
-        // TODO: Error handling missing id, number, parenthesis_open
+    else{
+        add_error(ErrorType::EXPECTED_EXPRESSION, tokens[index]);
+        *is_error = true;
     }
-
-    node->setChild(child);
+    return node;
 }
 
-Node *K_Node(Token tokens[])
+Node *K_Node(Token tokens[], bool *is_error)
 {
     // TODO: Implement generation rules for non-terminal K
     //  K -> TK'
 
     Node *node = new Node(K);
-    Node *child = (Node *)calloc(sizeof(Node), 2);
-    int child_id = 0;
 
-    if (tokens[index].getType() == "id" || tokens[index].getType() == "number" || tokens[index].getType() == "parenthesis_open")
+    if (tokens[index].getTokenType() == _id_ || tokens[index].getTokenType() == _number_ || tokens[index].getTokenType() == _parenthesis_open_)
     {
-        Node *temp = new Node(NodeType::T);
-        child[child_id] = *temp;
-        child_id++;
+        Node *temp = T_Node(tokens, is_error);
+        node->child->push_back(*temp);
 
-        Node *temp1 = new Node(NodeType::_K);
-        child[child_id] = *temp1;
-        child_id++;
-    }
-    else
-    {
-        // TODO: Error handling missing id, number, parenthesis_open
-    }
-
-    node->setChild(child);
+        Node *temp1 = _K_Node(tokens, is_error);
+        node->child->push_back(*temp1);
+        
+    }    
+    return node;
 }
 
-Node *T_Node(Token tokens[])
+Node *T_Node(Token tokens[], bool *is_error)
 {
     // TODO: Implement generation rules for non-terminal T
     // T -> FT'
-    Node *root = new Node(T);
-    Node *child = (Node *)calloc(sizeof(Node), 2);
-    if (tokens[index].getTokenType()==id || tokens[index].getTokenType()==number || tokens[index].getTokenType()==parenthesis_open){
-        child[0] = *F_Node(tokens);
-        child[1] = *_T_Node(tokens);
+    Node *node = new Node(T);
+    
+    if (tokens[index].getTokenType()==_id_ || tokens[index].getTokenType()==_number_ || tokens[index].getTokenType()==_parenthesis_open_){
+        node->child->push_back(*F_Node(tokens, is_error));
+        node->child->push_back(*_T_Node(tokens, is_error));
     }
-    else{
-        //TODO: Add error handling
-    }
-    root->setChild(child);
-    return root;
+    return node;
 }
 
-Node *F_Node(Token tokens[])
+Node *F_Node(Token tokens[], bool *is_error)
 {
     // TODO: Implement generation rules for non-terminal F
     // F-> id | number | (E) 
-    Node *root = new Node(F);
-    Node *child = (Node *)calloc(sizeof(Node), 3);
-    int child_index = 0;
-    if (tokens[index].getTokenType()==id){
-        index++;
+    Node *node = new Node(F);
+    
+    if (tokens[index].getTokenType()==_id_){
         Node * temp = new Node(NodeType::id);
-        root->setChild(temp);
-        return root;
+        node->child->push_back(*temp);
+        if (!checkDefine(tokens[index], tokens, index)){
+            add_error(ErrorType::UNDEFINED_SYMBOL, tokens[index]);
+            *is_error = true;
+        }
+        index++;
     }
-    else if (tokens[index].getTokenType()==number){
+    else if (tokens[index].getTokenType()==_number_){
         index++;
         Node * temp = new Node(NodeType::number);
-        root->setChild(temp);
-        return root;
+        node->child->push_back(*temp);
+        return node;
     }
-    else if (tokens[index].getTokenType()==parenthesis_open){
+    else if (tokens[index].getTokenType()==_parenthesis_open_){
         index++;
         Node * temp = new Node(NodeType::parenthesis_open);
-        child[child_index++] = *temp;
-        child[child_index++] = *E_Node(tokens);
-        if (tokens[index].getTokenType()==parenthesis_close){
+        node->child->push_back(*temp);
+        node->child->push_back(*E_Node(tokens, is_error));
+        if (tokens[index].getTokenType()==_parenthesis_close_){
             index++;
             Node * temp = new Node(NodeType::parenthesis_close);
-            child[child_index++] = *temp;
+            node->child->push_back(*temp);
         }
-        else{
-            //TODO: Add error handling
+        else
+        {
+            add_error(ErrorType::EXPECTED_PAREN_CLOSE, tokens[index]);
+            *is_error = true;
         }
     }
-    else{
-        //TODO: Add error handling
-    }
-    root->setChild(child);
-    return root;
+    return node;
 }
 
-Node *_E_Node(Token tokens[])
+Node *_E_Node(Token tokens[], bool *is_error)
 {
     // TODO: Implement generation rules for non-terminal E'
+    //E' -> e | rel_op KE'
+    Node *node = new Node(_E);
+    
+    int child_index = 0;
+    if (tokens[index].getTokenType()==_rel_op_){
+        index++;
+        Node * temp = new Node(NodeType::rel_op);
+        node->child->push_back(*temp);
+        node->child->push_back(*K_Node(tokens, is_error));
+        node->child->push_back(*_E_Node(tokens, is_error));
+    }
+    // E' -> e
+    else if (tokens[index].getTokenType()==_semicolon_||tokens[index].getTokenType()==_parenthesis_close_
+            ||tokens[index].getTokenType()==_add_){
+        Node * temp = new Node(NodeType::_epsilon);
+        node->child->push_back(*temp);
+        return node;
+    }
+    else{
+        add_error(ErrorType::UNDEFINED_LITERAL, tokens[index]);
+        *is_error = true;
+    }
+    return node;
 }
 
-Node *_K_Node(Token tokens[])
+Node *_K_Node(Token tokens[], bool *is_error)
 {
     // TODO: Implement generation rules for non-terminal K'
     // K' -> e | +TK'
-    Node *root = new Node(_K);
-    Node *child = (Node *)calloc(sizeof(Node), 3);
+    Node *node = new Node(_K);
+    
     int child_index = 0;
-    if (tokens[index].getTokenType()==add){
+    if (tokens[index].getTokenType()==_add_){
         index++;
         Node * temp = new Node(NodeType::add);
-        child[child_index++] = *temp;
-        child[child_index++] = *T_Node(tokens);
-        child[child_index++] = *_K_Node(tokens);
+        node->child->push_back(*temp);
+        node->child->push_back(*T_Node(tokens, is_error));
+        node->child->push_back(*_K_Node(tokens, is_error));
     }
     // K' -> e
-    else if (tokens[index].getTokenType()==semicolon||tokens[index].getTokenType()==parenthesis_close
-            ||tokens[index].getTokenType()==rel_op){
+    else if (tokens[index].getTokenType()==_semicolon_||tokens[index].getTokenType()==_parenthesis_close_
+            ||tokens[index].getTokenType()==_rel_op_){
         Node * temp = new Node(NodeType::_epsilon);
-        root->setChild(temp);
-        return root;
+        node->child->push_back(*temp);
+        return node;
     }
-    else{
-        //TODO: Add error handling
+    else
+    {
+        add_error(ErrorType::UNDEFINED_LITERAL, tokens[index]);
+        *is_error = true;
     }
-    root->setChild(child);
-    return root;
+    
+    return node;
 }
 
-Node *_T_Node(Token tokens[]){
+Node *_T_Node(Token tokens[], bool *is_error){
     //TODO: Implement generation rules for non-terminal T'
     // T' -> e | *FT'
-    Node *root = new Node(_T);
-    Node *child = (Node *)calloc(sizeof(Node), 3);
+    Node *node = new Node(_T);
+    
     int child_index = 0;
-    if (tokens[index].getTokenType()==mult){
+    if (tokens[index].getTokenType()==_mult_){
         index++;
         Node * temp = new Node(NodeType::mult);
-        child[child_index++] = *temp;
-        child[child_index++] = *F_Node(tokens);
-        child[child_index++] = *_T_Node(tokens);
+        node->child->push_back(*temp);
+        node->child->push_back(*F_Node(tokens, is_error));
+        node->child->push_back(*_T_Node(tokens, is_error));
     }
     // T' -> e
-    else if (tokens[index].getTokenType()==semicolon||tokens[index].getTokenType()==parenthesis_close
-            ||tokens[index].getTokenType()==rel_op || tokens[index].getTokenType()==add){
+    else if (tokens[index].getTokenType()==_semicolon_||tokens[index].getTokenType()==_parenthesis_close_
+            ||tokens[index].getTokenType()==_rel_op_ || tokens[index].getTokenType()==_add_){
         Node * temp = new Node(NodeType::_epsilon);
-        root->setChild(temp);
-        return root;
+        node->child->push_back(*temp);;
+        return node;
     }
-    else{
-        //TODO: Add error handling
+    else
+    {
+        add_error(ErrorType::UNDEFINED_LITERAL, tokens[index]);
+        *is_error = true;
     }
-    root->setChild(child);
-    return root;
+    
+    return node;
 }
 
-Node *IF_Node(Token tokens[]){
-    // IF -> if (E) then SL IFtail
-    Node *root = new Node(IF);
-    Node *child = (Node *)calloc(sizeof(Node), 7);
-    int child_index = 1;
-    child = new Node(NodeType::_if);
-    if (tokens[index].getTokenType()==parenthesis_open){
+Node *IF_Node(Token tokens[], bool *is_error){
+    // IF -> if (E) then {SL} IFtail
+    Node *node = new Node(IF);
+    node->child->push_back(* new Node(NodeType::_if));
+    index++;
+    if (tokens[index].getTokenType()==_parenthesis_open_){
         index++;
         Node * temp = new Node(NodeType::parenthesis_open);
-        child[child_index++] = *temp; 
+        node->child->push_back(*temp);
     }
-    else{
-        //TODO: Add error handling
+    else
+    {
+        add_error(ErrorType::EXPECTED_PAREN_OPEN, tokens[index]);
+        *is_error = true;
     }
-    child[child_index++] = *E_Node(tokens);
-    if (tokens[index].getTokenType()==parenthesis_close){
+    node->child->push_back(*E_Node(tokens, is_error));
+    if (tokens[index].getTokenType()==_parenthesis_close_){
         index++;
         Node * temp = new Node(NodeType::parenthesis_close);
-        child[child_index++] = *temp; 
+        node->child->push_back(*temp);
     }
-    else{
-        //TODO: Add error handling
+    else
+    {
+        add_error(ErrorType::EXPECTED_PAREN_CLOSE, tokens[index]);
+        *is_error = true;
     }
-    if (tokens[index].getTokenType()==_then){
+    if (tokens[index].getTokenType()==_then_){
         index++;
         Node * temp = new Node(NodeType::_then);
-        child[child_index++] = *temp; 
+        node->child->push_back(*temp);
     }
-    else{
-        //TODO: Add error handling
+    else
+    {
+        add_error(ErrorType::EXPECTED_THEN, tokens[index]);
+        *is_error = true;
     }
-    child[child_index++] = *SL_Node(tokens);
-    child[child_index++] = *IFtail_Node(tokens);
-    root->setChild(child);
-    return root;
-}
-
-Node *DW_Node(Token tokens[]){
-    // DW -> do {SL} while (E);
-    Node *root = new Node(DW);
-    Node *child = (Node *)calloc(sizeof(Node), 9);
-    int child_index = 1;
-    index++;
-    child = new Node(NodeType::_do);
-    if (tokens[index].getTokenType()==brace_open){
+    if (tokens[index].getTokenType()==_brace_open_){
         index++;
         Node * temp = new Node(NodeType::brace_open);
-        child[child_index++] = *temp; 
+        node->child->push_back(*temp);
     }
-    else{
-        //TODO: Add error handling
+    else
+    {
+        add_error(ErrorType::EXPECTED_BRACKET_OPEN, tokens[index]);
+        *is_error = true;
     }
-    child[child_index++] = *SL_Node(tokens);
-    if (tokens[index].getTokenType()==brace_close){
+    node->child->push_back(*SL_Node(tokens, is_error));
+    if (tokens[index].getTokenType()==_brace_close_){
         index++;
         Node * temp = new Node(NodeType::brace_close);
-        child[child_index++] = *temp; 
+        node->child->push_back(*temp);
     }
-    else{
-        //TODO: Add error handling
+    else
+    {
+        add_error(ErrorType::EXPECTED_BRACKET_CLOSE, tokens[index]);
+        *is_error = true;
     }
-    if (tokens[index].getTokenType()==_while){
+    node->child->push_back(*IFtail_Node(tokens, is_error));
+    
+    return node;
+}
+
+Node *DW_Node(Token tokens[], bool *is_error){
+    // DW -> do SL while (E);
+    Node *node = new Node(DW);
+    
+    Node * temp = new Node(NodeType::_do);
+    node->child->push_back(*temp);
+    if (tokens[index].getTokenType()==_brace_open_){
+        index++;
+        Node * temp = new Node(NodeType::brace_open);
+        node->child->push_back(*temp);
+    }
+    else
+    {
+        add_error(ErrorType::EXPECTED_BRACKET_OPEN, tokens[index]);
+        *is_error = true;
+    }
+    node->child->push_back(*SL_Node(tokens, is_error));
+    if (tokens[index].getTokenType()==_brace_close_){
+        index++;
+        Node * temp = new Node(NodeType::brace_close);
+        node->child->push_back(*temp);
+    }
+    else
+    {
+        add_error(ErrorType::EXPECTED_BRACKET_CLOSE, tokens[index]);
+        *is_error = true;
+    }
+    if (tokens[index].getTokenType()==_while_){
         index++;
         Node * temp = new Node(NodeType::_while);
-        child[child_index++] = *temp; 
+        node->child->push_back(*temp);
     }
-    else{
-        //TODO: Add error handling
+    else
+    {
+        add_error(ErrorType::EXPECTED_WHILE, tokens[index]);
+        *is_error = true;
     }
-    if (tokens[index].getTokenType()==parenthesis_open){
+    if (tokens[index].getTokenType()==_parenthesis_open_){
         index++;
         Node * temp = new Node(NodeType::parenthesis_open);
-        child[child_index++] = *temp; 
+        node->child->push_back(*temp);
     }
-    else{
-        //TODO: Add error handling
+    else
+    {
+        add_error(ErrorType::EXPECTED_PAREN_OPEN, tokens[index]);
+        *is_error = true;
     }
-    child[child_index++] = *E_Node(tokens);
-    if (tokens[index].getTokenType()==parenthesis_close){
+    node->child->push_back(*E_Node(tokens, is_error));
+    if (tokens[index].getTokenType()==_parenthesis_close_){
         index++;
         Node * temp = new Node(NodeType::parenthesis_close);
-        child[child_index++] = *temp; 
+        node->child->push_back(*temp);
     }
-    else{
-        //TODO: Add error handling
+    else
+    {
+        add_error(ErrorType::EXPECTED_PAREN_CLOSE, tokens[index]);
+        *is_error = true;
     }
-    root->setChild(child);
-    return root;
+    
+    return node;
 }
 
-Node *DStail_Node(Token tokens[]){
+Node *DStail_Node(Token tokens[], bool *is_error){
     //DSTail -> e | = E
-    Node *root = new Node(DStail);
-    Node *child = (Node *)calloc(sizeof(Node), 3);
-    int child_index = 0;
-    if (tokens[index].getTokenType()==assign){
+    Node *node = new Node(DStail);
+    
+    // cout << "DStail: "<<tokens[index].getType() << endl;
+
+    if (tokens[index].getTokenType()==_assign_){
         index++;
         Node * temp = new Node(NodeType::assign);
+        node->child->push_back(*temp);
     }
     // DSTail -> e
-    else if (tokens[index].getTokenType()==semicolon){
+    else if (tokens[index].getTokenType()==_semicolon_){
         Node * temp = new Node(NodeType::_epsilon);
-        root->setChild(temp);
-        return root;
+        node->child->push_back(*temp);
+        return node;
     }
-    else{
-        //TODO: Add error handling
+    else
+    {
+        // cout << "Error: " << tokens[index].getType() << endl;
+        add_error(ErrorType::EXPECTED_SEMI, tokens[index]);
+        *is_error = true;
     }
-    child[child_index++] = *E_Node(tokens);
-    root->setChild(child);
-    return root;
+    node->child->push_back(*E_Node(tokens, is_error));
+    return node;
 }
 
-Node *IFtail_Node(Token tokens[]){
+Node *IFtail_Node(Token tokens[], bool *is_error){
     //IFtail -> e | else SL
-    Node *root = new Node(IFtail);
-    Node *child = (Node *)calloc(sizeof(Node), 2);
-    int child_index = 0;
-    if (tokens[index].getTokenType()==_else){
+    Node *node = new Node(IFtail);
+    
+    if (tokens[index].getTokenType()==_else_){
         index++;
         Node * temp = new Node(NodeType::_else);
-        child[child_index++] = *temp;
+        node->child->push_back(*temp);
     }
     // IFtail -> e
-    else if (tokens[index].getTokenType()==semicolon){
+    else if (tokens[index].getTokenType()==_end_ || tokens[index].getTokenType()==_comment_
+            || tokens[index].getTokenType()==_type_ || tokens[index].getTokenType()==_id_|| tokens[index].getTokenType()==_print_
+            || tokens[index].getTokenType()==_do_ || tokens[index].getTokenType()==_if_){
         Node * temp = new Node(NodeType::_epsilon);
-        root->setChild(temp);
-        return root;
+        node->child->push_back(*temp);
+        return node;
     }
-    else{
-    //TODO: Add error handling
+    else
+    {
+        add_error(ErrorType::UNDEFINED_LITERAL, tokens[index]);
+        *is_error = true;
     }
-    child[child_index++] = *SL_Node(tokens);
-    root->setChild(child);
-    return root;
+    node->child->push_back(*SL_Node(tokens, is_error));
+    
+    return node;
+}
+
+string parser_tree(Node *node)
+{
+    string output = "";
+    cout << nodeType[node->getType()] << endl;
+    // vector<Node> *child = node->getChild();
+    for (int i = 0; i < node->child->size(); i++)
+    {
+        output += nodeType[node->getType()] + " -> " + nodeType[node->child->at(i).getType()] + "\n";
+        output += parser_tree(&node->child->at(i));
+    }
+    return output;
+}
+
+void printParserTree(Node *node, string filename)
+{
+    ofstream file(filename);
+    if (!file.is_open())
+    {
+        cout << "Failed to create the output file: " << filename << endl;
+    }
+    cout << "Printing parser tree to file: " << filename << endl;
+    file << parser_tree(node);
+    file.close();
 }
