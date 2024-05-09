@@ -56,6 +56,13 @@ class Token{
         int position;
         TokenType tokenType;
     public:
+        Token(){
+            this->type = "";
+            this->value = "";
+            this->line = 0;
+            this->position = 0;
+            this->tokenType = _id_;
+        }
         Token(string type, string value, int line, int position, TokenType tokenType){
             this->type = type;
             this->value = value;

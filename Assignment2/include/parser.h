@@ -101,4 +101,7 @@ Node *_E_Node(Token tokens[]);
 Node *_K_Node(Token tokens[]);
 Node *_T_Node(Token tokens[]);
 
+void saveParserTree(Node *node, std::string filename);
+
+
 #endif
