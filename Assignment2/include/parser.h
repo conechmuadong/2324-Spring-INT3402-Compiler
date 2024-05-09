@@ -84,6 +84,8 @@ bool parser(Token tokens[], Node &root);
 void printParserTree(Node *node, std::string filename);
 
 Node *P_Node(Token tokens[], bool *is_error);
+Node *_P_Node(Token tokens[], bool *is_error);
+Node *C_Node(Token tokens[], bool *is_error);
 Node *SL_Node(Token tokens[], bool *is_error);
 Node *S_Node(Token tokens[], bool *is_error);
 Node *BS_Node(Token tokens[], bool *is_error);

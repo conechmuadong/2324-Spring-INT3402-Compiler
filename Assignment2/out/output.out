@@ -1,2 +1,13 @@
 <BEGIN,  >
+<TYPE, int>
+<ID, a>
+<ASSIGN,  >
+<NUM, 10>
+<SEMI,  >
+<ID, a>
+<ASSIGN,  >
+<ID, a>
+<ADD_OP,  >
+<NUM, 10>
+<SEMI,  >
 <END,  >
