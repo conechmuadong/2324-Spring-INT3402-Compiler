@@ -31,15 +31,27 @@ void error_anounce(string error, int line, int position)
     cout << error << endl;
 }
 
-Node *P_Node(Token tokens[])
+Node *P_Node(Token token[])
 {
     // TODO: Implement generation rules for non-terminal P
-    //  P -> begin SL end
+    // P -> CP'C
+
+    Node *node = new Node(P);
+    Node *child = (Node *)calloc(sizeof(Node), 3);
+    int child_id = 0;
+
+    if (tokens[index].getType
+}
+
+Node *_P_Node(Token tokens[])
+{
+    // TODO: Implement generation rules for non-terminal P
+    //  P' -> begin SL end
     //  Next token = ?
     //  If next token is begin -> SL_Node(tokens)
     //  If next token is end -> return root
 
-    Node *node = new Node(P);
+    Node *node = new Node(_P);
     Node *child = (Node *)calloc(sizeof(Node), 3);
     int child_id = 0;
 

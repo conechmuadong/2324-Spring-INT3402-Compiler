@@ -8,6 +8,8 @@
 typedef enum
 {
     P,
+    _P,
+    C,
     SL,
     S,
     BS,
