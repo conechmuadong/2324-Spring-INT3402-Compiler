@@ -5,7 +5,8 @@
 #include <string>
 #include "scanner.h"
 
-typedef enum{
+typedef enum
+{
     P,
     SL,
     S,
@@ -26,6 +27,7 @@ typedef enum{
 
     _begin,
     _end,
+    cmt,
     type,
     id,
     number,
@@ -48,11 +50,11 @@ typedef enum{
     _epsilon
 } NodeType;
 
-
-class Node{
-    private:
-        Node *child;
-        NodeType type;
+class Node
+{
+private:
+    Node *child;
+    NodeType type;
 
     public:
         Node(){
