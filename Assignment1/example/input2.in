@@ -1,5 +1,5 @@
 begin 
-	int a;
+	int  a <= 0;
 	int b = 0;
 	int c;
 
@@ -21,3 +21,5 @@ begin
 	}
 	while (b > 10);
 end
+
+end begin

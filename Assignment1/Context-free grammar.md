@@ -119,14 +119,14 @@ Uppercase symbols are non-terminals.
 - `F+ (IFtail → else {SL}) = {else}`
 - `F+ (IFtail → e) = FL(IFtail) = {type, id, print , if , do , cmt , e , end, }}`
 - `F+ (DW → do {SL} while (E)) = {do}`
-- `F+ (E → KE') = F(K) = {relop , e , ; , )}`
+- `F+ (E → KE') = F(K) = {( , id , number}`
 - `F+ (E'→ relop KE') = {relop}`
 - `F+ (E'→ e) = FL(E') = {; , )}`
 - `F+ (K → TK') = F(T) = {( , id , number}`
 - `F+ (K'→ + TK') = {+}`
 - `F+ (K'→ e) = FL(K') = {relop , e, ; , )}`
 - `F+ (T → FT') = F(F) = {( , id , number}`
-- `F+ (T'→ \*FT') = {\*}`
+- `F+ (T'→ *FT') = {*}`
 - `F+ (T'→ e) = FL(T') = {; , ) , relop , + , e}` 
 - `F+ (F → (E)) = {(}`
 - `F+ (F → id) = {id}`

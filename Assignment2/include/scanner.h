@@ -2,6 +2,8 @@
 #include <string>
 #include <vector>
 
+using namespace std;
+
 typedef enum {
     START,
     IN_ID_1,
@@ -21,24 +23,45 @@ typedef enum {
     UNDEFINE_TYPE,
 } Error;
 
+typedef enum {
+    _id_,
+    _number_,
+    _assign_,
+    _semicolon_,
+    _brace_open_,
+    _brace_close_,
+    _parenthesis_open_,
+    _parenthesis_close_,
+    _add_,
+    _mult_,
+    _rel_op_,
+    _print_,
+    _if_,
+    _else_,
+    _while_,
+    _do_,
+    _then_,
+    _end_,
+    _type_,
+    _begin_,
+    _comment_,
+} TokenType;
+
+
 class Token{
     private:
         string type;
         string value;
         int line;
         int position;
+        TokenType tokenType;
     public:
-        Token(){
-            this->type = "";
-            this->value = "";
-            int line = 1;
-            int position = 1;
-        }
-        Token(string type, string value, int line, int position){
+        Token(string type, string value, int line, int position, TokenType tokenType){
             this->type = type;
             this->value = value;
             this->line = line;
             this->position = position;
+            this->tokenType = tokenType;
         }
         string getType(){
             return this->type;
@@ -48,6 +71,15 @@ class Token{
         }
         bool isDefined(Token other){
             return this->value == other.getValue();
+        }
+        int getLine(){
+            return this->line;
+        }
+        int getPosition(){
+            return this->position;
+        }
+        TokenType getTokenType(){
+            return this->tokenType;
         }
 };
 
