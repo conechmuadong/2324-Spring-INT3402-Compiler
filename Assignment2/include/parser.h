@@ -67,7 +67,7 @@ typedef enum{
     UNDEFINED_LITERAL,
     EXPECTED_THEN,
     EXPECTED_WHILE,
-
+    REDEFINED_SYMBOL,
 } ErrorType;
 
 class Error

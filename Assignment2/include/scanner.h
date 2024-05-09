@@ -90,7 +90,7 @@ class Token{
         }
 };
 
-bool checkDefine(Token token, Token tokens[], int lenght);
+bool checkDefine(Token token, Token tokens[], int length);
 bool scanner(string input, Token tokens[], int * error_pointer, string * error_symbol, int * error_line, int * error_type);
 
 

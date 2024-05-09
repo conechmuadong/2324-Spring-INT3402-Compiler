@@ -6,8 +6,8 @@
 
 using namespace std;
 
-bool checkDefine(Token token, Token tokens[], int lenght){
-    for (int i = 0; i < lenght; i++){
+bool checkDefine(Token token, Token tokens[], int length){
+    for (int i = 0; i < length; i++){
         if (tokens[i].isDefined(token) && tokens[i].getType() == "ID"){
             return true;
         }

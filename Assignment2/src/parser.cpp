@@ -64,11 +64,12 @@ string ErrorMessage[]{
     "can't resolve the symbol",
     "expected an identifier",
     "expected an =",
-    "expected an expression"
-    " "
+    "expected an expression",
+    "",
     "user-defined literal operator not found",
-    "if statement must contain \"then\" after condition"
-    "do-while statement must contain \"while\" in front of condition"
+    "if statement must contain \"then\" after condition",
+    "do-while statement must contain \"while\" in front of condition",
+    "",
 };
 
 vector<Error> errors = vector<Error>();
@@ -90,10 +91,15 @@ void printBoldString(const std::string& str) {
 void printError(Error error, string filename){
     printBoldString(filename+":"+to_string(error.line)+":"+to_string(error.position)+":");
     printRedString(" error: ");
-    if (error.errorType == UNDEFINE_SYMBOL){
-        cout << "identifier \'"+error.token.getValue()+"\' is undefined";
+    if (error.errorType == ErrorType::UNDEFINED_SYMBOL){
+        cout << "identifier \'"+error.token.getValue()+"\' is undefined"<<endl;
         return;
     }
+    else if (error.errorType == REDEFINED_SYMBOL)
+    {
+        cout << "identifier \'"+error.token.getValue()+"\' has conflicting declaration"<<endl;
+    }
+    
     cout << ErrorMessage[error.errorType] << endl;
 }
 
@@ -105,7 +111,7 @@ void error_anounce(string filename){
 
 void add_error(ErrorType error, Token token){
     Error e = Error(error, token.getLine(), token.getPosition());
-    if (UNDEFINE_SYMBOL == error){
+    if (ErrorType::UNDEFINED_SYMBOL == error){
         e.token = token;
     }
     errors.push_back(e);
@@ -152,7 +158,7 @@ Node *_P_Node(Token tokens[], bool *is_error)
     Node *node = new Node(_P);
     
 
-    cout << "P_Node" << endl;
+    cout << "P" << endl;
     if (tokens[index].getTokenType() == _begin_)
     {
         index++;
@@ -187,12 +193,11 @@ Node *SL_Node(Token tokens[], bool *is_error)
 {
     // TODO: Implement generation rules for non-terminal SL
     //  SL -> S ; SL | BS SL | cmt SL | epsilon
-
+    cout << "SL: " << tokens[index].getType()<<","<<tokens[index].getValue()<< endl;
     Node *node = new Node(SL);
     
     if (tokens[index].getTokenType() == _id_ || tokens[index].getTokenType() == _type_ || tokens[index].getTokenType() == _print_)
     {
-        index++;
         Node *temp = S_Node(tokens, is_error);
         node->child->push_back(*temp);
         if (tokens[index].getTokenType() == _semicolon_)
@@ -207,6 +212,7 @@ Node *SL_Node(Token tokens[], bool *is_error)
         }
         else
         {
+            cout << "Error: " << tokens[index].getType() << endl;
             add_error(ErrorType::EXPECTED_SEMI, tokens[index]);
             *is_error = true;
         }
@@ -251,11 +257,9 @@ Node *S_Node(Token tokens[], bool *is_error)
     //  S -> DS | CS
 
     Node *node = new Node(S);
-    
 
     if (tokens[index].getTokenType() == _type_)
     {
-        index++;
         node->child->push_back(*DS_Node(tokens, is_error));
     }
     else if (tokens[index].getTokenType() == _id_ || tokens[index].getTokenType() == _print_)
@@ -284,7 +288,7 @@ Node *DS_Node(Token tokens[], bool *is_error)
     //  DS -> type id DStail
 
     Node *node = new Node(DS);
-
+    cout << "DS: "<<tokens[index].getType() << endl;
     if (tokens[index].getTokenType() == _type_)
     {
         index++;
@@ -293,12 +297,15 @@ Node *DS_Node(Token tokens[], bool *is_error)
 
         if (tokens[index].getTokenType() == _id_)
         {
-            index++;
             Node *temp1 = new Node(NodeType::id);
             node->child->push_back(*temp1);
-
-            Node *temp2 = new Node(NodeType::DStail);
-            node->child->push_back(*temp2);
+            cout << tokens[index].getType() << endl;
+            if (checkDefine(tokens[index], tokens, index)){
+                add_error(ErrorType::REDEFINED_SYMBOL, tokens[index]);
+                *is_error = true;
+            }
+            index++;
+            node->child->push_back(*DStail_Node(tokens, is_error));
             
         }
         else
@@ -316,18 +323,17 @@ Node *CS_Node(Token tokens[], bool *is_error)
     //  CS -> id = E | print (E)
 
     Node *node = new Node(CS);
-    
-    cout << tokens[index].getType() << endl;
+    cout << "CS: "<<tokens[index].getType() << endl;
     if (tokens[index].getTokenType() == _id_)
     {
-        index++;
+        cout << tokens[index].getValue() << endl;
         Node *temp = new Node(NodeType::id);
-        if (!checkDefine(tokens[index], tokens, sizeof(tokens)/sizeof(tokens[0]))){
+        if (!checkDefine(tokens[index], tokens, index)){
             add_error(ErrorType::UNDEFINED_SYMBOL, tokens[index]);
             *is_error = true;
         }
         node->child->push_back(*temp);
-
+        index++;
         if (tokens[index].getTokenType() == _assign_)
         {
             index++;
@@ -447,13 +453,13 @@ Node *F_Node(Token tokens[], bool *is_error)
     Node *node = new Node(F);
     
     if (tokens[index].getTokenType()==_id_){
-        index++;
         Node * temp = new Node(NodeType::id);
         node->child->push_back(*temp);
-        if (!checkDefine(tokens[index], tokens, sizeof(tokens)/sizeof(tokens[0]))){
+        if (!checkDefine(tokens[index], tokens, index)){
             add_error(ErrorType::UNDEFINED_SYMBOL, tokens[index]);
             *is_error = true;
         }
+        index++;
     }
     else if (tokens[index].getTokenType()==_number_){
         index++;
@@ -695,6 +701,8 @@ Node *DStail_Node(Token tokens[], bool *is_error){
     //DSTail -> e | = E
     Node *node = new Node(DStail);
     
+    // cout << "DStail: "<<tokens[index].getType() << endl;
+
     if (tokens[index].getTokenType()==_assign_){
         index++;
         Node * temp = new Node(NodeType::assign);
@@ -708,6 +716,7 @@ Node *DStail_Node(Token tokens[], bool *is_error){
     }
     else
     {
+        // cout << "Error: " << tokens[index].getType() << endl;
         add_error(ErrorType::EXPECTED_SEMI, tokens[index]);
         *is_error = true;
     }
@@ -719,7 +728,6 @@ Node *IFtail_Node(Token tokens[], bool *is_error){
     //IFtail -> e | else SL
     Node *node = new Node(IFtail);
     
-    int child_index = 0;
     if (tokens[index].getTokenType()==_else_){
         index++;
         Node * temp = new Node(NodeType::_else);
