@@ -21,50 +21,39 @@ The grammar for the UPL is shown in `Context-free grammar.md`.
 ## File structure
 
 - The `Context-free grammar.md` contains definitions for context-free grammar for the UPL.
-- Source code included in `./src` folder. Header files are contained in `./include`
-- `./out` folder contains binary files of above scanners.
-- `./example` contains the example input file and example output file for the scanners.
+- Source code included in `./src` folder. Header files are contained in `./include` folder
+- `./example` contains the example input file.
 
 ## Context-free grammar
 
 - A Statement List `SL` may contain a statement `S`, a block statement `BS`, a comment `cmt` or null `e`. Here, a statement can be a declaration statement `DS` or a computational statement `CS`; while a block statement contains condition `IF` and loop `DW`.
 - An expression can be addition `+`, multiplication `*` or comparison `relop`. The order of precedence from highest to lowest is: `*`, `+`, `relop`.  
 
-## Running the scanner
+## How to use
 
-The following examples generate tokens from file `./example/input.in` and save the result to `.example/output.out` by using:
+The following examples run the parser with file `./example/example.upl` and save the list of tokens to `./out/output.out` and save the parser tree to `./out/parser_tree.txt`
 
-- The built-from-scratch scanner:
-    ```
-    .out/scanner ./example/input.in example/output.out
-    ```
-- The C/C++ FLEX scanner:
-    ```
-    .out/scanner_lex ./example/input.in example/output.out
-    ```
+```
+    ./upl example/example.upl ./out/output.out ./out/parser_tree.txt
+```
+For more details, please use `./upl --helps`
 
-To change the two scanners by changing the source code:
-- Change the built-from-scratch scanner:
-    ```
-    g++ ./src/scanner.cpp -o ./out/scanner
-    ```
-- Change the C/C++ FLEX scanner:
-    ```
-    cd ./src/lex
-    lex scanner.l
-    gcc lex.yy.c -o ../../out/scanner_lex
-    ```
-
+To rebuild and recompile the parser:
+   
+```
+    make all
+```
+Please take a look to the `Makefile` for more information before changing our source.
+    
 ## Output format
 
-The output file is formatted as following:
+The output list of tokens is formatted as following:
 ```
 <TokenType, Value(Optional)>,
 <TokenType, Value(Optional)>,
 ....
 <TokenType, Value(Optional)>
 ```
-If there is an error in the input file, the output file returns: 
-```
-Error at line ... at position ..., can't resolve the symbol: ... 
-```
+If there is an error in the input file, the output file returns the same form of the following example: 
+
+![Error example](./content/error_example.jpeg)
