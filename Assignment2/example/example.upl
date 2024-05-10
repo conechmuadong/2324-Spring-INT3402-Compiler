@@ -1,5 +1,23 @@
-begin
+/**
+* @author Duy Hung Nguyen, Thanh An Nguyen, Thu Hien Nguyen
+* @file example.upl
+* @brief This is the example file for the UET Programming language that defined in our course.
+* This is the example file for testing the parser for syntax analysist
+*/
+
+// The program starts with "begin" keyword
+
+begin 
     int a = 10;
-    a = a + 10;
-    b = b 2;
+    bool b;
+    a = a + 5;
+    if (a >= 10) then{
+        a = a * 2;
+    }
+    do {
+        a = a;
+    }
+    while (b)
 end
+
+//The program ends with "end" keyword

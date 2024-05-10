@@ -244,7 +244,11 @@ bool scanner(string input, Token tokens[], int * error_pointer, string * error_s
                 }else if ( j == input.length() - 1){
                     tokens[i++] = Token("COMMENT", " ", *error_line, k, TokenType::_comment_);
                     state = START;
-                } 
+                }
+                else if (input.substr(j, 1) == "\n"){
+                    *error_line = *error_line + 1;
+                    j++;
+                }                 
                 else {
                     j++;
                 }
@@ -268,6 +272,7 @@ bool scanner(string input, Token tokens[], int * error_pointer, string * error_s
             case IN_INLINE_COMMENT:
                 if (input.substr(j, 1) == "\n"){
                     state = START;
+                    error_line++;
                     tokens[i++] = Token("COMMENT", " ", *error_line, k, TokenType::_comment_);
                     token = "";
                     tokenType = "";

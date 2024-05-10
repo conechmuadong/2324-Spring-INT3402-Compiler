@@ -4,7 +4,7 @@ SOURCE = ./src
 OBJECT = ./obj
 
 all: $(OBJECT)/scanner.o $(OBJECT)/parser.o $(OBJECT)/main.o
-	$(CC) $(OBJECT)/scanner.o $(OBJECT)/parser.o $(OBJECT)/main.o -o ./out/parser
+	$(CC) $(OBJECT)/scanner.o $(OBJECT)/parser.o $(OBJECT)/main.o -o ./upl
 
 $(OBJECT)/scanner.o: $(SOURCE)/scanner.cpp
 	$(CC) $(INCLUDES) -c $(SOURCE)/scanner.cpp -o $(OBJECT)/scanner.o
@@ -18,4 +18,5 @@ $(OBJECT)/main.o: $(SOURCE)/main.cpp
 phony: clean
 clean:
 	rm -f $(OBJECT)/*.o
-	rm -f ./out/parser
+	rm -f ./out/*
+	rm -f ./upl
