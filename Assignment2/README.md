@@ -56,4 +56,4 @@ The output list of tokens is formatted as following:
 ```
 If there is an error in the input file, the output file returns the same form of the following example: 
 
-![Error example](./content/error_example.jpeg)
+![Error example](./content/error_example.png)
