@@ -157,8 +157,6 @@ Node *_P_Node(Token tokens[], bool *is_error)
 
     Node *node = new Node(_P);
     
-
-    cout << "P" << endl;
     if (tokens[index].getTokenType() == _begin_)
     {
         index++;
@@ -193,7 +191,6 @@ Node *SL_Node(Token tokens[], bool *is_error)
 {
     // TODO: Implement generation rules for non-terminal SL
     //  SL -> S ; SL | BS SL | cmt SL | epsilon
-    cout << "SL: " << tokens[index].getType()<<","<<tokens[index].getValue()<< endl;
     Node *node = new Node(SL);
     
     if (tokens[index].getTokenType() == _id_ || tokens[index].getTokenType() == _type_ || tokens[index].getTokenType() == _print_)
@@ -212,14 +209,12 @@ Node *SL_Node(Token tokens[], bool *is_error)
         }
         else
         {
-            cout << "Error: " << tokens[index].getType() << endl;
             add_error(ErrorType::EXPECTED_SEMI, tokens[index]);
             *is_error = true;
         }
     }
     else if (tokens[index].getTokenType() == _if_ || tokens[index].getTokenType() == _do_)
     {
-        index++;
         // add BS SL node to child
         Node *temp = BS_Node(tokens, is_error);
         node->child->push_back(*temp);
@@ -272,7 +267,6 @@ Node *S_Node(Token tokens[], bool *is_error)
 Node *BS_Node(Token tokens[], bool *is_error)
 {
     Node *node = new Node(BS);
-    
     if (tokens[index].getTokenType()==TokenType::_if_){
         node->child->push_back(*IF_Node(tokens, is_error));
     }
@@ -288,7 +282,6 @@ Node *DS_Node(Token tokens[], bool *is_error)
     //  DS -> type id DStail
 
     Node *node = new Node(DS);
-    cout << "DS: "<<tokens[index].getType() << endl;
     if (tokens[index].getTokenType() == _type_)
     {
         index++;
@@ -299,7 +292,6 @@ Node *DS_Node(Token tokens[], bool *is_error)
         {
             Node *temp1 = new Node(NodeType::id);
             node->child->push_back(*temp1);
-            cout << tokens[index].getType() << endl;
             if (checkDefine(tokens[index], tokens, index)){
                 add_error(ErrorType::REDEFINED_SYMBOL, tokens[index]);
                 *is_error = true;
@@ -323,10 +315,8 @@ Node *CS_Node(Token tokens[], bool *is_error)
     //  CS -> id = E | print (E)
 
     Node *node = new Node(CS);
-    cout << "CS: "<<tokens[index].getType() << endl;
     if (tokens[index].getTokenType() == _id_)
     {
-        cout << tokens[index].getValue() << endl;
         Node *temp = new Node(NodeType::id);
         if (!checkDefine(tokens[index], tokens, index)){
             add_error(ErrorType::UNDEFINED_SYMBOL, tokens[index]);
@@ -549,7 +539,6 @@ Node *_T_Node(Token tokens[], bool *is_error){
     // T' -> e | *FT'
     Node *node = new Node(_T);
     
-    int child_index = 0;
     if (tokens[index].getTokenType()==_mult_){
         index++;
         Node * temp = new Node(NodeType::mult);
@@ -640,6 +629,7 @@ Node *DW_Node(Token tokens[], bool *is_error){
     Node *node = new Node(DW);
     
     Node * temp = new Node(NodeType::_do);
+    index ++;
     node->child->push_back(*temp);
     if (tokens[index].getTokenType()==_brace_open_){
         index++;
@@ -751,15 +741,18 @@ Node *IFtail_Node(Token tokens[], bool *is_error){
     return node;
 }
 
-string parser_tree(Node *node)
+string parser_tree(Node *node, string prefix, bool isLast)
 {
     string output = "";
-    cout << nodeType[node->getType()] << endl;
-    // vector<Node> *child = node->getChild();
+    output += prefix;
+    output += (isLast ? "└──" : "├──");
+    output += nodeType[node->getType()];
+    output += "\n";
+
     for (int i = 0; i < node->child->size(); i++)
     {
-        output += nodeType[node->getType()] + " -> " + nodeType[node->child->at(i).getType()] + "\n";
-        output += parser_tree(&node->child->at(i));
+        bool isLastChild = i == node->child->size() - 1;
+        output += parser_tree(&node->child->at(i), prefix + (isLast ? "    " : "│   "), isLastChild);    
     }
     return output;
 }
@@ -772,6 +765,6 @@ void printParserTree(Node *node, string filename)
         cout << "Failed to create the output file: " << filename << endl;
     }
     cout << "Printing parser tree to file: " << filename << endl;
-    file << parser_tree(node);
+    file << parser_tree(node, "", true);
     file.close();
 }
