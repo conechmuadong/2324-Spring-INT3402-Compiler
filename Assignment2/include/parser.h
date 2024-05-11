@@ -68,6 +68,7 @@ typedef enum{
     EXPECTED_THEN,
     EXPECTED_WHILE,
     REDEFINED_SYMBOL,
+    WARNNING_UNCOMPATIBLE_TYPE,
 } ErrorType;
 
 class Error
@@ -113,7 +114,9 @@ private:
         }
 };
 
-bool parser(Token tokens[], Node &root);
+void printRedString(const std::string& str);
+void printBoldString(const std::string& str);
+bool parser(Token tokens[], Node &root, bool *is_warning);
 void printParserTree(Node *node, std::string filename);
 void error_anounce(string filename);
 
@@ -126,18 +129,18 @@ Node *BS_Node(Token tokens[], bool *is_error);
 Node *DS_Node(Token tokens[], bool *is_error);
 Node *CS_Node(Token tokens[], bool *is_error);
 
-Node *E_Node(Token tokens[], bool *is_error);
-Node *K_Node(Token tokens[], bool *is_error);
-Node *T_Node(Token tokens[], bool *is_error);
-Node *F_Node(Token tokens[], bool *is_error);
+Node *E_Node(Token tokens[], bool *is_error, int idType);
+Node *K_Node(Token tokens[], bool *is_error, int idType);
+Node *T_Node(Token tokens[], bool *is_error, int idType);
+Node *F_Node(Token tokens[], bool *is_error, int idType);
 Node *IF_Node(Token tokens[], bool *is_error);
 Node *DW_Node(Token tokens[], bool *is_error);
 Node *DStail_Node(Token tokens[], bool *is_error);
 Node *IFtail_Node(Token tokens[], bool *is_error);
 
-Node *_E_Node(Token tokens[], bool *is_error);
-Node *_K_Node(Token tokens[], bool *is_error);
-Node *_T_Node(Token tokens[], bool *is_error);
+Node *_E_Node(Token tokens[], bool *is_error, int idType);
+Node *_K_Node(Token tokens[], bool *is_error, int idType);
+Node *_T_Node(Token tokens[], bool *is_error, int idType);
 
 // void saveParserTree();
 #endif

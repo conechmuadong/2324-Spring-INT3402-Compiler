@@ -55,13 +55,16 @@ class Token{
         int line;
         int position;
         TokenType tokenType;
+        // int idType;
     public:
+        int idType;
         Token(){
             this->type = "";
             this->value = "";
             this->line = 0;
             this->position = 0;
             this->tokenType = _id_;
+            this->idType = -1;
         }
         Token(string type, string value, int line, int position, TokenType tokenType){
             this->type = type;
@@ -69,6 +72,10 @@ class Token{
             this->line = line;
             this->position = position;
             this->tokenType = tokenType;
+        }
+        
+        void setType(int type){
+            this->idType = type;
         }
         string getType(){
             return this->type;
@@ -90,7 +97,7 @@ class Token{
         }
 };
 
-bool checkDefine(Token token, Token tokens[], int length);
+bool checkDefine(Token *token, Token tokens[], int length);
 bool scanner(string input, Token tokens[], int * error_pointer, string * error_symbol, int * error_line, int * error_type);
 
 

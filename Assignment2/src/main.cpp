@@ -48,12 +48,17 @@ int main(int argc, char* argv[]) {
     }
     else {
         outputFile << "Error at line " << error_line << " at position " << error_pointer << ", can't resolve the symbol "<< error_symbol << endl;
-        cout << "Error at line " << error_line << " at position " << error_pointer << ", can't resolve the symbol "<< error_symbol << endl;
+        printBoldString(filename+":"+to_string(error_line)+":"+to_string(error_pointer)+":");
+        printRedString("error: ");
+        cout << "can't resolve the symbol ";
+        printRedString(error_symbol);
+        cout << endl;
         return -1;
     }
     outputFile.close();
     Node root = Node();
-    if(parser(tokens, root)){
+    bool is_warning = false;
+    if(parser(tokens, root, &is_warning)){
         string parserTree = "";
         if (argc == 4) {
             parserTree = argv[3];
@@ -62,10 +67,14 @@ int main(int argc, char* argv[]) {
             parserTree = "./out/parser_tree.txt";
         }
         printParserTree(&root, parserTree);
+        if (is_warning){
+           error_anounce(filename);
+        }
         return 0;
     }
     else {
         error_anounce(filename);
         return -1;
     }
+    
 }

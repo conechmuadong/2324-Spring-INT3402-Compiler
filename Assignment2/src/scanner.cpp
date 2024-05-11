@@ -6,14 +6,34 @@
 
 using namespace std;
 
-bool checkDefine(Token token, Token tokens[], int length){
+bool checkDefine(Token *token, Token tokens[], int length){
     for (int i = 0; i < length; i++){
-        if (tokens[i].isDefined(token) && tokens[i].getType() == "ID"){
+        if (tokens[i].isDefined(*token) && tokens[i].getType() == "ID"){
+            token->idType = tokens[i].idType;
             return true;
         }
     }   
     return false;
 }
+
+void setDefineType(Token tokens[], int i){
+    cout << tokens[i-1].getValue() << endl;
+    cout << tokens[i-2].getValue() << endl;
+    if (tokens[i-2].getType() == "TYPE"){
+        if (tokens[i-2].getValue()=="int"){
+            // cout << "int - scanner" << endl;
+            tokens[i-1].idType = 1;
+            // cout << tokens[i-1].getValue() << " " << tokens[i-1].idType << endl;
+        }
+        else if (tokens[i-2].getValue()=="bool")
+            tokens[i-1].idType = 0;
+        return;
+    }
+    if (!checkDefine(&tokens[i-1], tokens, i-1)){
+        tokens[i-1].idType = -1;
+    }
+}
+
 /**
  * @def parser
  * @brief This function will parse the input string and return a list of tokens
@@ -72,6 +92,8 @@ bool scanner(string input, Token tokens[], int * error_pointer, string * error_s
                 else {
                     state = START;
                     tokens[i++] = Token("ID", token, *error_line, k, TokenType::_id_);
+                    setDefineType(tokens, i);
+                    // cout << tokens[i-1].getValue() << "k" << tokens[i-1].idType << endl;
                     token = "";
                     tokenType = "";
                 }
@@ -84,6 +106,7 @@ bool scanner(string input, Token tokens[], int * error_pointer, string * error_s
                 else if (!regex_match(input.substr(j, 1), regex("[a-zA-Z0-9]+"))){
                     state = START;
                     tokens[i++] = Token(tokenType, token, *error_line, k, TokenType::_id_);
+                    setDefineType(tokens, i);
                 }
                 else {
                     state = ERROR;

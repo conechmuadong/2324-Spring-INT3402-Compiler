@@ -9,10 +9,10 @@
 
 begin 
     int a = 10;
-    bool b;
+    bool ;
     a = a + 5;
     if (a >= 10) then{
-        a = a * 2;
+        2 = 2;
     }
     do {
         a = a;

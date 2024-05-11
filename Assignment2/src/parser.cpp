@@ -7,6 +7,7 @@
 using namespace std;
 
 int index = 0;
+bool is_warning = false;
 
 string nodeType[]{
     "P",
@@ -70,14 +71,16 @@ string ErrorMessage[]{
     "if statement must contain \"then\" after condition",
     "do-while statement must contain \"while\" in front of condition",
     "",
+    "expression contains uncompatible type, could not resolve",
 };
 
 vector<Error> errors = vector<Error>();
 
-bool parser(Token tokens[], Node &node){
+bool parser(Token tokens[], Node &node, bool *is_warning){
     // node = new Node(P);
     bool is_error = false;
     node = *P_Node(tokens, &is_error);
+    *is_warning = is_warning;
     return !is_error;
 }
 void printRedString(const std::string& str) {
@@ -88,9 +91,18 @@ void printBoldString(const std::string& str) {
     cout << "\033[1m" << str << "\033[0m";
 }
 
+void printPinkString(const std::string& str) {
+    cout << "\033[1;35m" << str << "\033[0m";
+}
+
 void printError(Error error, string filename){
     printBoldString(filename+":"+to_string(error.line)+":"+to_string(error.position)+":");
-    printRedString(" error: ");
+    if (error.errorType == WARNNING_UNCOMPATIBLE_TYPE){
+        printPinkString(" warning: ");
+    }
+    else{
+        printRedString(" error: ");
+    }
     if (error.errorType == ErrorType::UNDEFINED_SYMBOL){
         cout << "identifier \'"+error.token.getValue()+"\' is undefined"<<endl;
         return;
@@ -292,7 +304,7 @@ Node *DS_Node(Token tokens[], bool *is_error)
         {
             Node *temp1 = new Node(NodeType::id);
             node->child->push_back(*temp1);
-            if (checkDefine(tokens[index], tokens, index)){
+            if (checkDefine(&tokens[index], tokens, index)){
                 add_error(ErrorType::REDEFINED_SYMBOL, tokens[index]);
                 *is_error = true;
             }
@@ -315,13 +327,15 @@ Node *CS_Node(Token tokens[], bool *is_error)
     //  CS -> id = E | print (E)
 
     Node *node = new Node(CS);
+    int idType = -1;
     if (tokens[index].getTokenType() == _id_)
     {
         Node *temp = new Node(NodeType::id);
-        if (!checkDefine(tokens[index], tokens, index)){
+        if (tokens[index].idType == -1){
             add_error(ErrorType::UNDEFINED_SYMBOL, tokens[index]);
             *is_error = true;
         }
+        idType = tokens[index].idType;
         node->child->push_back(*temp);
         index++;
         if (tokens[index].getTokenType() == _assign_)
@@ -331,7 +345,7 @@ Node *CS_Node(Token tokens[], bool *is_error)
             node->child->push_back(*temp1);
             
 
-            Node *temp = E_Node(tokens, is_error);
+            Node *temp = E_Node(tokens, is_error, idType);
             node->child->push_back(*temp);
             
         }
@@ -354,7 +368,7 @@ Node *CS_Node(Token tokens[], bool *is_error)
             node->child->push_back(*temp1);
             
 
-            Node *temp2 = E_Node(tokens, is_error);
+            Node *temp2 = E_Node(tokens, is_error, idType);
             node->child->push_back(*temp2);
             
 
@@ -380,7 +394,7 @@ Node *CS_Node(Token tokens[], bool *is_error)
     return node;
 }
 
-Node *E_Node(Token tokens[], bool *is_error)
+Node *E_Node(Token tokens[], bool *is_error, int idType)
 {
     // TODO: Implement generation rules for non-terminal E
     //  E -> KE'
@@ -391,10 +405,10 @@ Node *E_Node(Token tokens[], bool *is_error)
 
     if (tokens[index].getTokenType() == _id_ || tokens[index].getTokenType() == _number_ || tokens[index].getTokenType() == _parenthesis_open_)
     {
-        Node *temp = K_Node(tokens, is_error);
+        Node *temp = K_Node(tokens, is_error, idType);
         node->child->push_back(*temp);
 
-        Node *temp1 = _E_Node(tokens, is_error);
+        Node *temp1 = _E_Node(tokens, is_error, idType);
         node->child->push_back(*temp1);
     }
     else{
@@ -404,7 +418,7 @@ Node *E_Node(Token tokens[], bool *is_error)
     return node;
 }
 
-Node *K_Node(Token tokens[], bool *is_error)
+Node *K_Node(Token tokens[], bool *is_error, int idType)
 {
     // TODO: Implement generation rules for non-terminal K
     //  K -> TK'
@@ -413,30 +427,30 @@ Node *K_Node(Token tokens[], bool *is_error)
 
     if (tokens[index].getTokenType() == _id_ || tokens[index].getTokenType() == _number_ || tokens[index].getTokenType() == _parenthesis_open_)
     {
-        Node *temp = T_Node(tokens, is_error);
+        Node *temp = T_Node(tokens, is_error, idType);
         node->child->push_back(*temp);
 
-        Node *temp1 = _K_Node(tokens, is_error);
+        Node *temp1 = _K_Node(tokens, is_error, idType);
         node->child->push_back(*temp1);
         
     }    
     return node;
 }
 
-Node *T_Node(Token tokens[], bool *is_error)
+Node *T_Node(Token tokens[], bool *is_error, int idType)
 {
     // TODO: Implement generation rules for non-terminal T
     // T -> FT'
     Node *node = new Node(T);
     
     if (tokens[index].getTokenType()==_id_ || tokens[index].getTokenType()==_number_ || tokens[index].getTokenType()==_parenthesis_open_){
-        node->child->push_back(*F_Node(tokens, is_error));
-        node->child->push_back(*_T_Node(tokens, is_error));
+        node->child->push_back(*F_Node(tokens, is_error, idType));
+        node->child->push_back(*_T_Node(tokens, is_error, idType));
     }
     return node;
 }
 
-Node *F_Node(Token tokens[], bool *is_error)
+Node *F_Node(Token tokens[], bool *is_error, int idType)
 {
     // TODO: Implement generation rules for non-terminal F
     // F-> id | number | (E) 
@@ -445,9 +459,17 @@ Node *F_Node(Token tokens[], bool *is_error)
     if (tokens[index].getTokenType()==_id_){
         Node * temp = new Node(NodeType::id);
         node->child->push_back(*temp);
-        if (!checkDefine(tokens[index], tokens, index)){
+        if (!checkDefine(&tokens[index], tokens, index)){
             add_error(ErrorType::UNDEFINED_SYMBOL, tokens[index]);
             *is_error = true;
+        }
+        if (tokens[index].idType != idType && idType != -1){
+            add_error(ErrorType::WARNNING_UNCOMPATIBLE_TYPE, tokens[index]);
+            is_warning = true;
+            // cout << "F"<< tokens[index].getValue() << tokens[index].idType << " " << idType << endl;
+        }
+        if (tokens[index].idType != -1){
+            idType = tokens[index].idType;
         }
         index++;
     }
@@ -455,13 +477,21 @@ Node *F_Node(Token tokens[], bool *is_error)
         index++;
         Node * temp = new Node(NodeType::number);
         node->child->push_back(*temp);
+        if (idType != 1 && idType != -1){
+            add_error(ErrorType::WARNNING_UNCOMPATIBLE_TYPE, tokens[index]);
+            is_warning = true;
+            // cout << "F" << tokens[index].idType << " " << idType << endl;
+        }
+        if (idType == -1){
+            idType = 1;
+        }
         return node;
     }
     else if (tokens[index].getTokenType()==_parenthesis_open_){
         index++;
         Node * temp = new Node(NodeType::parenthesis_open);
         node->child->push_back(*temp);
-        node->child->push_back(*E_Node(tokens, is_error));
+        node->child->push_back(*E_Node(tokens, is_error, idType));
         if (tokens[index].getTokenType()==_parenthesis_close_){
             index++;
             Node * temp = new Node(NodeType::parenthesis_close);
@@ -476,7 +506,7 @@ Node *F_Node(Token tokens[], bool *is_error)
     return node;
 }
 
-Node *_E_Node(Token tokens[], bool *is_error)
+Node *_E_Node(Token tokens[], bool *is_error, int idType)
 {
     // TODO: Implement generation rules for non-terminal E'
     //E' -> e | rel_op KE'
@@ -487,8 +517,8 @@ Node *_E_Node(Token tokens[], bool *is_error)
         index++;
         Node * temp = new Node(NodeType::rel_op);
         node->child->push_back(*temp);
-        node->child->push_back(*K_Node(tokens, is_error));
-        node->child->push_back(*_E_Node(tokens, is_error));
+        node->child->push_back(*K_Node(tokens, is_error, idType));
+        node->child->push_back(*_E_Node(tokens, is_error, idType));
     }
     // E' -> e
     else if (tokens[index].getTokenType()==_semicolon_||tokens[index].getTokenType()==_parenthesis_close_
@@ -504,7 +534,7 @@ Node *_E_Node(Token tokens[], bool *is_error)
     return node;
 }
 
-Node *_K_Node(Token tokens[], bool *is_error)
+Node *_K_Node(Token tokens[], bool *is_error, int idType)
 {
     // TODO: Implement generation rules for non-terminal K'
     // K' -> e | +TK'
@@ -515,8 +545,8 @@ Node *_K_Node(Token tokens[], bool *is_error)
         index++;
         Node * temp = new Node(NodeType::add);
         node->child->push_back(*temp);
-        node->child->push_back(*T_Node(tokens, is_error));
-        node->child->push_back(*_K_Node(tokens, is_error));
+        node->child->push_back(*T_Node(tokens, is_error, idType));
+        node->child->push_back(*_K_Node(tokens, is_error, idType));
     }
     // K' -> e
     else if (tokens[index].getTokenType()==_semicolon_||tokens[index].getTokenType()==_parenthesis_close_
@@ -534,7 +564,7 @@ Node *_K_Node(Token tokens[], bool *is_error)
     return node;
 }
 
-Node *_T_Node(Token tokens[], bool *is_error){
+Node *_T_Node(Token tokens[], bool *is_error, int idType){
     //TODO: Implement generation rules for non-terminal T'
     // T' -> e | *FT'
     Node *node = new Node(_T);
@@ -543,8 +573,8 @@ Node *_T_Node(Token tokens[], bool *is_error){
         index++;
         Node * temp = new Node(NodeType::mult);
         node->child->push_back(*temp);
-        node->child->push_back(*F_Node(tokens, is_error));
-        node->child->push_back(*_T_Node(tokens, is_error));
+        node->child->push_back(*F_Node(tokens, is_error, idType));
+        node->child->push_back(*_T_Node(tokens, is_error, idType));
     }
     // T' -> e
     else if (tokens[index].getTokenType()==_semicolon_||tokens[index].getTokenType()==_parenthesis_close_
@@ -577,7 +607,7 @@ Node *IF_Node(Token tokens[], bool *is_error){
         add_error(ErrorType::EXPECTED_PAREN_OPEN, tokens[index]);
         *is_error = true;
     }
-    node->child->push_back(*E_Node(tokens, is_error));
+    node->child->push_back(*E_Node(tokens, is_error, -1));
     if (tokens[index].getTokenType()==_parenthesis_close_){
         index++;
         Node * temp = new Node(NodeType::parenthesis_close);
@@ -672,7 +702,7 @@ Node *DW_Node(Token tokens[], bool *is_error){
         add_error(ErrorType::EXPECTED_PAREN_OPEN, tokens[index]);
         *is_error = true;
     }
-    node->child->push_back(*E_Node(tokens, is_error));
+    node->child->push_back(*E_Node(tokens, is_error, -1));
     if (tokens[index].getTokenType()==_parenthesis_close_){
         index++;
         Node * temp = new Node(NodeType::parenthesis_close);
@@ -710,7 +740,7 @@ Node *DStail_Node(Token tokens[], bool *is_error){
         add_error(ErrorType::EXPECTED_SEMI, tokens[index]);
         *is_error = true;
     }
-    node->child->push_back(*E_Node(tokens, is_error));
+    node->child->push_back(*E_Node(tokens, is_error, -1));
     return node;
 }
 
